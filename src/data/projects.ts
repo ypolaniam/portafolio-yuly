@@ -12,17 +12,6 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "bienestar-fce",
-    title: "Bienestar FCE - UNal",
-    category: "Identidad Visual",
-    image: "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Bienestar+FCE",
-    description: "Identidad visual institucional para Bienestar de la Facultad de Ciencias Económicas de la Universidad Nacional. Desarrollo de línea gráfica, iconografía, manual de marca y piezas para redes sociales y difusión de actividades.",
-    metrics: "Aplicada en 15+ canales de comunicación institucional",
-    tools: ["Illustrator", "Photoshop", "InDesign", "Figma"],
-    year: "2025",
-    size: "large"
-  },
-  {
     slug: "cultura-local-textus",
     title: "Convocatoria Más Cultura Local / Textus Femenino",
     category: "Estrategia Digital",
@@ -42,7 +31,7 @@ export const projects: Project[] = [
     metrics: "Cuenta Vision Media | 2026",
     tools: ["Illustrator", "Photoshop", "Figma", "CapCut Pro"],
     year: "2026",
-    size: "medium"
+    size: "large"
   },
   {
     slug: "vision-media-campaigns",
@@ -53,6 +42,17 @@ export const projects: Project[] = [
     metrics: "DIC 2025 - MAY 2026 | Freelance Partner",
     tools: ["Adobe CC", "Figma", "CapCut Pro", "Canva Pro", "IA Generativa"],
     year: "2026",
+    size: "large"
+  },
+  {
+    slug: "bienestar-fce",
+    title: "Bienestar FCE - UNal",
+    category: "Identidad Visual",
+    image: "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Bienestar+FCE",
+    description: "Identidad visual institucional para Bienestar de la Facultad de Ciencias Económicas de la Universidad Nacional. Desarrollo de línea gráfica, iconografía, manual de marca y piezas para redes sociales y difusión de actividades.",
+    metrics: "Aplicada en 15+ canales de comunicación institucional",
+    tools: ["Illustrator", "Photoshop", "InDesign", "Figma"],
+    year: "2025",
     size: "medium"
   },
   {

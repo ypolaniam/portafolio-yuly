@@ -48,7 +48,17 @@ const {
           <a href="/" class="logo">Yuly Polanía<span class="accent">.</span></a>
           <span class="brand-tagline">Estratega de Contenido · Diseñadora Visual</span>
         </div>
-        <nav class="nav" aria-label="Principal">
+        <button
+          class="nav-toggle"
+          aria-label="Abrir menú de navegación"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav id="primary-nav" class="nav" aria-label="Principal">
           <a href="/#trabajo" class="nav-link" data-nav="trabajo">
             Trabajo
             <span class="nav-underline"></span>
@@ -185,6 +195,33 @@ const {
           animate(link, { x: 0 }, { duration: 0.4, ease: [0.16, 1, 0.3, 1] });
         });
       });
+
+      // Mobile navigation toggle
+      const navToggle = document.querySelector('.nav-toggle');
+      const primaryNav = document.getElementById('primary-nav');
+      if (navToggle && primaryNav) {
+        const closeNav = () => {
+          primaryNav.classList.remove('open');
+          navToggle.setAttribute('aria-expanded', 'false');
+        };
+
+        navToggle.addEventListener('click', () => {
+          const isOpen = primaryNav.classList.toggle('open');
+          navToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        primaryNav.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', closeNav);
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeNav();
+        });
+
+        window.addEventListener('resize', () => {
+          if (window.innerWidth > 768) closeNav();
+        });
+      }
 
       if ('scrollRestoration' in history) {
         history.scrollRestoration = 'auto';

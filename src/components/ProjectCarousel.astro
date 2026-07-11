@@ -107,8 +107,15 @@ const repeated = [...related, ...related, ...related];
     const getStep = () => {
       const first = cards[0];
       const second = cards[1];
-      if (!first || !second) return 320;
-      return Math.max(second.offsetLeft - first.offsetLeft, 320);
+      if (first && second && second.offsetLeft > first.offsetLeft) {
+        return second.offsetLeft - first.offsetLeft;
+      }
+      if (first) {
+        const style = getComputedStyle(track);
+        const gap = parseFloat(style.columnGap || style.gap || "0") || 0;
+        return first.offsetWidth + gap;
+      }
+      return 320;
     };
 
     const getBlockWidth = () => {
@@ -237,17 +244,18 @@ const repeated = [...related, ...related, ...related];
 
   .carousel-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
   }
 
   .carousel-track {
     display: flex;
+    align-items: stretch;
     gap: 0.75rem;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-behavior: smooth;
-    padding: 0.5rem 0.25rem 1rem;
+    /* Vertical padding so the hover lift + card shadow are not clipped
+       (overflow-x:auto forces overflow-y to clip). */
+    padding: 1.25rem 0;
     width: 100%;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -258,8 +266,11 @@ const repeated = [...related, ...related, ...related];
     display: none;
   }
 
+  /* Buttons float over the carousel edges instead of taking horizontal space */
   .carousel-btn {
-    flex-shrink: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -270,47 +281,76 @@ const repeated = [...related, ...related, ...related];
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-base);
-    box-shadow: var(--shadow-sm);
-    z-index: 2;
+    transition: border-color var(--transition-base), color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+    box-shadow: var(--shadow-md);
+    z-index: 5;
   }
 
   .carousel-btn:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    transform: scale(1.05);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: var(--shadow-lg);
   }
 
   .carousel-btn:active {
-    transform: scale(0.95);
+    transform: translateY(-50%) scale(0.95);
   }
 
   .carousel-btn-prev {
-    margin-left: -0.5rem;
+    left: -0.75rem;
   }
 
   .carousel-btn-next {
-    margin-right: -0.5rem;
+    right: -0.75rem;
   }
 
   .related-projects .project-card {
     min-width: 320px;
     max-width: 360px;
-    flex: 1 1 320px;
+    flex: 0 0 320px;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    min-height: 340px;
+  }
+
+  .related-projects .project-card .project-card-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .related-projects .project-card .project-card-image {
+    flex: 1;
+    aspect-ratio: auto;
+    min-height: 180px;
+  }
+
+  .related-projects .project-card .project-card-content {
+    flex-shrink: 0;
+  }
+
+  /* On tablet/mobile the buttons are hidden and cards use the full width;
+     navigation is done by swiping. A partial next card hints at scrollability. */
+  @media (max-width: 768px) {
+    .carousel-btn {
+      display: none;
+    }
+
+    .related-projects .project-card {
+      min-width: min(85%, 340px);
+      max-width: 360px;
+      flex: 0 0 min(85%, 340px);
+    }
   }
 
   @media (max-width: 540px) {
     .related-projects .project-card {
-      min-width: 280px;
-      max-width: 300px;
-      flex: 1 1 280px;
-    }
-
-    .carousel-btn {
-      width: 40px;
-      height: 40px;
+      min-width: 82%;
+      max-width: none;
+      flex: 0 0 82%;
+      min-height: 300px;
     }
   }
 </style>
