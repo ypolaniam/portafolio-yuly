@@ -1,0 +1,555 @@
+---
+import MotionWrapper from "./MotionWrapper.astro";
+
+interface Project {
+  slug: string;
+  title: string;
+  category: string;
+  image: string;
+  description?: string;
+  metrics?: string;
+  tools?: string[];
+  year: string;
+  size?: "large" | "medium" | "small";
+}
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+
+// Get unique categories for filter
+const categories = [...new Set(projects.map(p => p.category))];
+---
+
+<section id="trabajo" class="work" aria-labelledby="trabajo-title">
+  <MotionWrapper delay={100}>
+    <header class="work-header">
+      <p class="hero-overline reveal-text" data-reveal="word">Trabajo</p>
+      <h2 id="trabajo-title" class="section-title reveal">
+        Proyectos <span class="gradient-text">seleccionados</span>
+      </h2>
+      <p class="section-description reveal-text" data-reveal="word">
+        Una selección de proyectos que combinan estrategia, diseño y resultados medibles.
+      </p>
+    </header>
+  </MotionWrapper>
+
+  <!-- Category Filter -->
+  <MotionWrapper delay={250}>
+    <div class="category-filter" role="tablist" aria-label="Filtrar por categoría">
+      <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">Todos</button>
+      {categories.map(cat => (
+        <button class="filter-btn" data-filter={cat} role="tab" aria-selected="false">{cat}</button>
+      ))}
+    </div>
+  </MotionWrapper>
+
+  <MotionWrapper delay={350}>
+    <div class="projects-rows">
+      {Array.from({ length: Math.ceil(projects.length / 2) }).map((_, rowIndex) => {
+        const firstIndex = rowIndex * 2;
+        const secondIndex = rowIndex * 2 + 1;
+        const first = projects[firstIndex];
+        const second = projects[secondIndex];
+        const isWideLeft = rowIndex % 2 === 0;
+
+        return (
+          <div class={`projects-row ${isWideLeft ? 'wide-left' : 'narrow-left'}`}>
+            {first && (
+              <article
+                class="project-card"
+                data-index={firstIndex}
+                data-category={first.category}>
+                <a href={`/trabajo/${first.slug}/`} class="project-card-link" aria-label={`Ver detalle: ${first.title}`}>
+                  <div class="project-card-image">
+                    <img src={first.image} alt={first.title} loading="lazy" />
+                    <div class="project-card-overlay">
+                      <span class="overlay-title">Ver proyecto →</span>
+                      {first.metrics && <span class="overlay-metric">{typeof first.metrics === 'string' ? first.metrics : first.metrics[0]}</span>}
+                    </div>
+                    <span class="project-card-tag">{first.category}</span>
+                  </div>
+                  <div class="project-card-content">
+                    <h3 class="project-title">{first.title}</h3>
+                    {first.metrics && (
+                      <div class="project-metrics">
+                        {Array.isArray(first.metrics) ? first.metrics.map(m => <span class="metric">{m}</span>) : <span class="metric">{first.metrics}</span>}
+                      </div>
+                    )}
+                    {first.client && <p class="project-client">{first.client}</p>}
+                  </div>
+                </a>
+              </article>
+            )}
+            {second && (
+              <article
+                class="project-card"
+                data-index={secondIndex}
+                data-category={second.category}>
+                <a href={`/trabajo/${second.slug}/`} class="project-card-link" aria-label={`Ver detalle: ${second.title}`}>
+                  <div class="project-card-image">
+                    <img src={second.image} alt={second.title} loading="lazy" />
+                    <div class="project-card-overlay">
+                      <span class="overlay-title">Ver proyecto →</span>
+                      {second.metrics && <span class="overlay-metric">{typeof second.metrics === 'string' ? second.metrics : second.metrics[0]}</span>}
+                    </div>
+                    <span class="project-card-tag">{second.category}</span>
+                  </div>
+                  <div class="project-card-content">
+                    <h3 class="project-title">{second.title}</h3>
+                    {second.metrics && (
+                      <div class="project-metrics">
+                        {Array.isArray(second.metrics) ? second.metrics.map(m => <span class="metric">{m}</span>) : <span class="metric">{second.metrics}</span>}
+                      </div>
+                    )}
+                    {second.client && <p class="project-client">{second.client}</p>}
+                  </div>
+                </a>
+              </article>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </MotionWrapper>
+</section>
+
+<script type="module">
+  import { animate, inView, stagger } from "motion";
+
+  // Category filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.project-card[data-category]');
+  
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+      
+      filterBtns.forEach(b => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-selected', b === btn);
+      });
+      
+      cards.forEach((card, index) => {
+        const category = card.dataset.category;
+        const shouldShow = filter === 'all' || category === filter;
+        
+        if (shouldShow) {
+          card.classList.remove('hidden');
+          card.offsetHeight; // Force reflow
+          animate(card, 
+            { opacity: [0, 1], y: [30, 0] },
+            { duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.05 }
+          );
+        } else {
+          animate(card, 
+            { opacity: [1, 0], y: [0, -30] },
+            { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
+          ).then(() => {
+            card.classList.add('hidden');
+          });
+        }
+      });
+
+      // When filtering, single visible cards should take full width
+      document.querySelectorAll('.projects-row').forEach(row => {
+        const visibleCards = row.querySelectorAll('.project-card:not(.hidden)');
+        visibleCards.forEach(card => {
+          card.classList.toggle('full-width', visibleCards.length === 1);
+        });
+      });
+    });
+  });
+
+  // Staggered entrance animation
+  const projectCards = document.querySelectorAll('.project-card[data-index]');
+  
+  projectCards.forEach((card, index) => {
+    const img = card.querySelector('img');
+    const content = card.querySelector('.project-card-content');
+    const tag = card.querySelector('.project-card-tag');
+    const metrics = card.querySelector('.project-metrics');
+    
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(40px)';
+    if (img) img.style.transform = 'scale(1.1)';
+    if (content) {
+      content.style.opacity = '0';
+      content.style.transform = 'translateY(20px)';
+    }
+    if (tag) {
+      tag.style.opacity = '0';
+      tag.style.transform = 'translateY(10px)';
+    }
+    if (metrics) {
+      metrics.style.opacity = '0';
+      metrics.style.transform = 'translateY(10px)';
+    }
+
+    inView(card, () => {
+      animate(card, 
+        { opacity: 1, transform: 'translateY(0)' },
+        { duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }
+      );
+      
+      if (img) {
+        animate(img, 
+          { transform: 'scale(1)' },
+          { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 + 0.2 }
+        );
+      }
+      
+      if (content) {
+        animate(content, 
+          { opacity: 1, transform: 'translateY(0)' },
+          { duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 + 0.3 }
+        );
+      }
+      
+      if (tag) {
+        animate(tag, 
+          { opacity: 1, transform: 'translateY(0)' },
+          { duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 + 0.4 }
+        );
+      }
+      
+      if (metrics) {
+        animate(metrics, 
+          { opacity: 1, transform: 'translateY(0)' },
+          { duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 + 0.5 }
+        );
+      }
+    }, { once: true, margin: "-100px" });
+  });
+
+  // Enhanced hover animations
+  const cardLinks = document.querySelectorAll('.project-card-link');
+  
+  cardLinks.forEach(link => {
+    const img = link.querySelector('img');
+    const overlay = link.querySelector('.project-card-overlay');
+    const overlayText = link.querySelector('.project-card-overlay span');
+    const title = link.querySelector('.project-title');
+    const tag = link.querySelector('.project-card-tag');
+    const content = link.querySelector('.project-card-content');
+    const metrics = link.querySelector('.project-metrics');
+    
+    let hoverAnim = null;
+    
+    link.addEventListener('mouseenter', () => {
+      if (hoverAnim) hoverAnim.stop();
+      
+      hoverAnim = animate(link, 
+        { y: -8, boxShadow: '0 25px 50px -12px rgba(139, 92, 246, 0.25)' },
+        { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
+      );
+      
+      if (img) {
+        animate(img, { scale: 1.06 }, { duration: 0.6, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (overlay && overlayText) {
+        animate(overlay, { opacity: 1 }, { duration: 0.3, ease: 'easeOut' });
+        animate(overlayText, { y: 0, opacity: 1 }, { duration: 0.4, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (title) {
+        animate(title, { color: 'var(--color-primary)' }, { duration: 0.3, ease: 'easeOut' });
+      }
+      
+      if (tag) {
+        animate(tag, { x: 8, scale: 1.05 }, { duration: 0.3, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (content) {
+        animate(content, { y: -4 }, { duration: 0.3, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (metrics) {
+        animate(metrics, { opacity: 1, y: 0 }, { duration: 0.3, ease: 'easeOut' });
+      }
+    });
+    
+    link.addEventListener('mouseleave', () => {
+      if (hoverAnim) hoverAnim.stop();
+      
+      animate(link, 
+        { y: 0, boxShadow: '0 4px 24px rgba(0, 0, 0, 0.04)' },
+        { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+      );
+      
+      if (img) {
+        animate(img, { scale: 1 }, { duration: 0.8, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (overlay && overlayText) {
+        animate(overlay, { opacity: 0 }, { duration: 0.3, ease: 'easeOut' });
+        animate(overlayText, { y: 10, opacity: 0 }, { duration: 0.3, ease: 'easeOut' });
+      }
+      
+      if (title) {
+        animate(title, { color: 'var(--color-text)' }, { duration: 0.3, ease: 'easeOut' });
+      }
+      
+      if (tag) {
+        animate(tag, { x: 0, scale: 1 }, { duration: 0.4, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (content) {
+        animate(content, { y: 0 }, { duration: 0.4, ease: [0.16, 1, 0.3, 1] });
+      }
+      
+      if (metrics) {
+        animate(metrics, { opacity: 0.7, y: 10 }, { duration: 0.3, ease: 'easeOut' });
+      }
+    });
+  });
+
+  // Reduced motion
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    projectCards.forEach(card => {
+      card.style.opacity = '1';
+      card.style.transform = 'none';
+      const img = card.querySelector('img');
+      if (img) img.style.transform = 'none';
+    });
+  }
+</script>
+
+<style>
+  .work-header {
+    margin-bottom: 4rem;
+    text-align: center;
+  }
+
+  .category-filter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1000px;
+    background: var(--color-bg);
+    color: var(--color-text-light);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+  }
+
+  .filter-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-color: transparent;
+    color: var(--color-white);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+  }
+
+  .projects-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .projects-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .project-card {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: 260px;
+  }
+
+  .projects-row.wide-left .project-card:first-child {
+    flex: 7 1 0%;
+  }
+
+  .projects-row.wide-left .project-card:last-child {
+    flex: 3 1 0%;
+  }
+
+  .projects-row.narrow-left .project-card:first-child {
+    flex: 3 1 0%;
+  }
+
+  .projects-row.narrow-left .project-card:last-child {
+    flex: 7 1 0%;
+  }
+
+  .project-card.hidden {
+    display: none;
+  }
+
+  .project-card.full-width {
+    flex: 1 1 100% !important;
+  }
+
+  @media (max-width: 768px) {
+    .projects-row {
+      flex-direction: column;
+    }
+
+    .project-card {
+      min-height: 220px;
+    }
+
+    .projects-row.wide-left .project-card,
+    .projects-row.narrow-left .project-card {
+      flex: 1 1 100% !important;
+    }
+  }
+
+  .project-card-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .project-card-image {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .project-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .project-card:hover .project-card-image img {
+    transform: scale(1.06);
+  }
+
+  .project-card-tag {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.375rem 0.875rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border-radius: 1000px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+  }
+
+  .project-card:hover .project-card-tag {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .project-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(30, 27, 75, 0.92) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    z-index: 3;
+  }
+
+  .project-card:hover .project-card-overlay {
+    opacity: 1;
+  }
+
+  .project-card-overlay span {
+    color: var(--color-white);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transform: translateY(10px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .project-card-overlay .overlay-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--color-white);
+  }
+
+  .project-card-overlay .overlay-metric {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+  }
+
+  .project-card:hover .project-card-overlay span {
+    transform: translateY(0);
+  }
+
+  .project-card-content {
+    padding: 1.25rem;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+
+  .project-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    transition: color var(--transition-base);
+  }
+
+  .project-card:hover .project-title {
+    color: var(--color-primary);
+  }
+
+  .project-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    opacity: 0.8;
+  }
+
+  .metric {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 0.25rem 0.625rem;
+    border-radius: 1000px;
+  }
+
+  .project-client {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+  }
+</style>

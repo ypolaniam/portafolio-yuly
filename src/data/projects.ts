@@ -1,0 +1,80 @@
+export interface Project {
+  slug: string;
+  title: string;
+  category: string;
+  image: string;
+  description: string;
+  metrics?: string;
+  tools?: string[];
+  year: string;
+  size?: "large" | "medium" | "small";
+}
+
+export const projects: Project[] = [
+  {
+    slug: "bienestar-fce",
+    title: "Bienestar FCE - UNal",
+    category: "Identidad Visual",
+    image: "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Bienestar+FCE",
+    description: "Identidad visual institucional para Bienestar de la Facultad de Ciencias Económicas de la Universidad Nacional. Desarrollo de línea gráfica, iconografía, manual de marca y piezas para redes sociales y difusión de actividades.",
+    metrics: "Aplicada en 15+ canales de comunicación institucional",
+    tools: ["Illustrator", "Photoshop", "InDesign", "Figma"],
+    year: "2025",
+    size: "large"
+  },
+  {
+    slug: "cultura-local-textus",
+    title: "Convocatoria Más Cultura Local / Textus Femenino",
+    category: "Estrategia Digital",
+    image: "https://placehold.co/800x500/3B82F6/FFFFFF?text=Cultura+Local",
+    description: "Gestión de contenido digital y estrategia de narrativa transmedia para proyecto de memoria comunitaria (Semillero Experimentación Textil - UNal). Transformación de cuenta estática a estrategia multiformato usando Reels para alcance y carruseles para retención.",
+    metrics: "+2,271% alcance orgánico | +82% visualizaciones | 41% audiencia nueva",
+    tools: ["Premiere", "CapCut Pro", "Canva Pro", "Photoshop", "Figma"],
+    year: "2025",
+    size: "large"
+  },
+  {
+    slug: "atria-abogados",
+    title: "Atria Abogados",
+    category: "Estrategia de Marca",
+    image: "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Atria+Abogados",
+    description: "Desarrollo de identidad visual y estrategia de contenidos para servicios legales, enfocada en claridad comunicativa y posicionamiento profesional en redes sociales.",
+    metrics: "Cuenta Vision Media | 2026",
+    tools: ["Illustrator", "Photoshop", "Figma", "CapCut Pro"],
+    year: "2026",
+    size: "medium"
+  },
+  {
+    slug: "vision-media-campaigns",
+    title: "Vision Media - Campañas RRSS",
+    category: "Contenido Digital",
+    image: "https://placehold.co/800x500/3B82F6/FFFFFF?text=Vision+Media",
+    description: "Diseño de piezas gráficas, identidad visual, manual de marca, presentaciones corporativas y material publicitario. Producción con Adobe CC, Figma, CapCut Pro, Canva Pro e IA generativa.",
+    metrics: "DIC 2025 - MAY 2026 | Freelance Partner",
+    tools: ["Adobe CC", "Figma", "CapCut Pro", "Canva Pro", "IA Generativa"],
+    year: "2026",
+    size: "medium"
+  },
+  {
+    slug: "app-miga",
+    title: "Miga - App Educación Financiera",
+    category: "UX/UI Design",
+    image: "https://placehold.co/800x500/8B5CF6/FFFFFF?text=App+Miga",
+    description: "App de educación financiera gamificada para jóvenes, diseñada en Figma aplicando principios UX/UI, gamificación, heurísticas de Nielsen, accesibilidad y diseño inclusivo. Validada con pruebas de usabilidad.",
+    metrics: "Proyecto académico | 2026",
+    tools: ["Figma", "Principios UX/UI", "Gamificación", "Accesibilidad"],
+    year: "2026",
+    size: "small"
+  },
+  {
+    slug: "marca-personal-pola-mola",
+    title: "Pola Mola - Marca Personal",
+    category: "Branding",
+    image: "https://placehold.co/800x500/3B82F6/FFFFFF?text=Pola+Mola",
+    description: "Sistema de identidad visual personal: estrategia, naming, logotipo, paleta, tipografía, aplicaciones digitales e impresas, manual de marca y contenido para portafolio extendido.",
+    metrics: "2026",
+    tools: ["Illustrator", "Photoshop", "Figma", "InDesign"],
+    year: "2026",
+    size: "small"
+  }
+];
