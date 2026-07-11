@@ -43,6 +43,16 @@ const { onComplete } = Astro.props;
   body.style.overflow = 'hidden';
   root.style.setProperty('--intro-opacity', '1');
 
+  // Safety net: if the animation sequence never completes (e.g. an error in
+  // the motion calls), force-remove the scene so the page stays usable.
+  const introSafety = setTimeout(() => {
+    if (scene && scene.isConnected) {
+      scene.remove();
+      root.style.setProperty('--intro-opacity', '0');
+      body.style.overflow = '';
+    }
+  }, 8000);
+
   const tl = [];
 
   // Phase 1: orbs come together
@@ -132,6 +142,7 @@ const { onComplete } = Astro.props;
           { opacity: 0 },
           { duration: 0.4, ease: 'easeOut', delay: 0.08 }
         ).then(() => {
+          clearTimeout(introSafety);
           scene.remove();
           root.style.setProperty('--intro-opacity', '0');
           body.style.overflow = '';

@@ -7,13 +7,21 @@ interface Props {
   description?: string;
   hideHeaderIntro?: boolean;
   showIntro?: boolean;
+  noindex?: boolean;
+  ogImage?: string;
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
-const { 
-  title = "Yuly Alejandra Polanía Molano - Diseñadora Visual de Contenido", 
+const {
+  title = "Yuly Alejandra Polanía Molano - Diseñadora Visual de Contenido",
   description = "Portafolio de Yuly Alejandra Polanía Molano - Estratega de Contenido y Diseñadora Visual",
   hideHeaderIntro = false,
-  showIntro = false
+  showIntro = false,
+  noindex = false,
+  ogImage = "https://placehold.co/1200x630/1E1B4A/FFFFFF?text=Yuly+Polania",
+  ogTitle,
+  ogDescription = description,
 } = Astro.props;
 ---
 
@@ -23,7 +31,14 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:title" content={ogTitle ?? title} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:image" content={ogImage} />
     <meta name="generator" content={Astro.generator} />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>{title}</title>
   </head>
@@ -123,22 +138,37 @@ const {
       }
 
       // IntersectionObserver for reveal animations (fallback for non-motion elements)
-      const observer = new IntersectionObserver((entries) => {
+      const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             entry.target.classList.add('revealed');
-            observer.unobserve(entry.target);
+            revealObserver.unobserve(entry.target);
           }
         });
       }, { threshold: 0.1 });
 
       function bootReveal() {
         document.querySelectorAll('.reveal:not(.revealed)').forEach(el => {
-          observer.observe(el);
+          revealObserver.observe(el);
         });
       }
       bootReveal();
       document.addEventListener('astro:page-load', bootReveal);
+
+      // Reveal elements injected after load (e.g. client:only React islands like
+      // ProjectDetailClient) so they aren't stuck at opacity: 0.
+      const revealWatcher = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          m.addedNodes.forEach((node) => {
+            if (node.nodeType !== 1) return;
+            if (node.classList?.contains('reveal') && !node.classList.contains('revealed')) {
+              revealObserver.observe(node);
+            }
+            node.querySelectorAll?.('.reveal:not(.revealed)').forEach((el) => revealObserver.observe(el));
+          });
+        }
+      });
+      revealWatcher.observe(document.body, { childList: true, subtree: true });
 
       // Smooth scroll for same-page anchor links only
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {

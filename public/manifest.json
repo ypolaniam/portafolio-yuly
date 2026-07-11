@@ -1,0 +1,16 @@
+{
+  "name": "Yuly Polanía - Diseñadora Visual",
+  "short_name": "YPolanía",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E1B4A",
+  "theme_color": "#8B5CF6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

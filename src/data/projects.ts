@@ -1,16 +1,6 @@
-export interface Project {
-  slug: string;
-  title: string;
-  category: string;
-  image: string;
-  description: string;
-  metrics?: string;
-  tools?: string[];
-  year: string;
-  size?: "large" | "medium" | "small";
-}
+import type { Project } from "../types/project";
 
-export const projects: Project[] = [
+export const initialProjects: Project[] = [
   {
     slug: "cultura-local-textus",
     title: "Convocatoria Más Cultura Local / Textus Femenino",
@@ -20,7 +10,7 @@ export const projects: Project[] = [
     metrics: "+2,271% alcance orgánico | +82% visualizaciones | 41% audiencia nueva",
     tools: ["Premiere", "CapCut Pro", "Canva Pro", "Photoshop", "Figma"],
     year: "2025",
-    size: "large"
+    size: "large",
   },
   {
     slug: "atria-abogados",
@@ -31,7 +21,7 @@ export const projects: Project[] = [
     metrics: "Cuenta Vision Media | 2026",
     tools: ["Illustrator", "Photoshop", "Figma", "CapCut Pro"],
     year: "2026",
-    size: "large"
+    size: "large",
   },
   {
     slug: "vision-media-campaigns",
@@ -42,7 +32,7 @@ export const projects: Project[] = [
     metrics: "DIC 2025 - MAY 2026 | Freelance Partner",
     tools: ["Adobe CC", "Figma", "CapCut Pro", "Canva Pro", "IA Generativa"],
     year: "2026",
-    size: "large"
+    size: "large",
   },
   {
     slug: "bienestar-fce",
@@ -53,7 +43,7 @@ export const projects: Project[] = [
     metrics: "Aplicada en 15+ canales de comunicación institucional",
     tools: ["Illustrator", "Photoshop", "InDesign", "Figma"],
     year: "2025",
-    size: "medium"
+    size: "medium",
   },
   {
     slug: "app-miga",
@@ -64,7 +54,7 @@ export const projects: Project[] = [
     metrics: "Proyecto académico | 2026",
     tools: ["Figma", "Principios UX/UI", "Gamificación", "Accesibilidad"],
     year: "2026",
-    size: "small"
+    size: "small",
   },
   {
     slug: "marca-personal-pola-mola",
@@ -75,6 +65,6 @@ export const projects: Project[] = [
     metrics: "2026",
     tools: ["Illustrator", "Photoshop", "Figma", "InDesign"],
     year: "2026",
-    size: "small"
-  }
+    size: "small",
+  },
 ];
