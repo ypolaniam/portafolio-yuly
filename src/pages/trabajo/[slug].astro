@@ -1,164 +1,24 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import MotionWrapper from "../../components/MotionWrapper.astro";
-import ProjectCarousel from "../../components/ProjectCarousel.astro";
-import { projects } from "../../data/projects.js";
+import ProjectDetailClient from "../../components/ProjectDetailClient.tsx";
+import { initialProjects } from "../../data/projects";
+import type { Project } from "../../types/project";
 
 export async function getStaticPaths() {
-  return projects.map(project => ({
+  return initialProjects.map((project) => ({
     params: { slug: project.slug },
-    props: { project }
+    props: { initialProject: project },
   }));
 }
 
-const { project } = Astro.props;
+const { slug } = Astro.params;
+const { initialProject } = Astro.props;
 ---
 
-<BaseLayout title={`${project.title} — Yuly Polanía Molano`} description={project.description}>
-  <article class="project-detail">
-    <MotionWrapper>
-      <header class="project-detail-header">
-        <a href="/#trabajo" class="back-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Volver
-        </a>
-        <span class="project-category">{project.category}</span>
-        <h1 class="project-detail-title">{project.title}</h1>
-      </header>
-    </MotionWrapper>
-
-    <MotionWrapper delay={150}>
-      <figure class="project-detail-image">
-        <img src={project.image} alt={project.title} />
-      </figure>
-    </MotionWrapper>
-
-    <MotionWrapper delay={300}>
-      <div class="project-detail-body">
-        <p class="project-lead">{project.description}</p>
-        
-        <div class="project-meta">
-          <div class="meta-item">
-            <span class="meta-label">Año</span>
-            <span class="meta-value">{project.year}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Rol</span>
-            <span class="meta-value">{project.role || 'Diseñadora'}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Herramientas</span>
-            <span class="meta-value">{project.tools?.join(', ') || 'Figma, Adobe CC'}</span>
-          </div>
-        </div>
-
-        {project.metrics && (
-          <div class="project-metrics-section">
-            <h3 class="metrics-title">Resultados</h3>
-            <div class="metrics-grid">
-              {Array.isArray(project.metrics)
-                ? project.metrics.map(m => (
-                    <div class="metric-card">
-                      <span class="metric-value">{m}</span>
-                    </div>
-                  ))
-                : (
-                    <div class="metric-card">
-                      <span class="metric-value">{project.metrics}</span>
-                    </div>
-                  )
-              }
-            </div>
-          </div>
-        )}
-
-        <div class="project-description">
-          <p>
-            Este proyecto representó un desafío único al equilibrar estética con funcionalidad avanzada. 
-            Se trabajó en colaboración con un equipo multidisciplinario para garantizar coherencia entre la identidad visual y la experiencia final.
-          </p>
-          <p>
-            El proceso incluyó investigación de usuarios, wireframing iterativo, prototipado de alta fidelidad y validación mediante pruebas de usabilidad. 
-            El resultado es una experiencia fluida que reduce la fricción cognitiva y mejora las métricas de conversión.
-          </p>
-        </div>
-      </div>
-    </MotionWrapper>
-
-    <ProjectCarousel currentSlug={project.slug} />
-  </article>
+<BaseLayout
+  title={`${initialProject?.title || "Proyecto"} — Yuly Polanía Molano`}
+  description={initialProject?.description || "Detalle del proyecto"}
+  ogImage={initialProject?.image || "https://placehold.co/1200x630/1E1B4A/FFFFFF?text=Proyecto"}
+>
+  <ProjectDetailClient client:only="react" initialSlug={slug} initialProject={initialProject} />
 </BaseLayout>
-
-<style>
-  .project-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-bottom: 3rem;
-    padding: 1.5rem;
-    background: var(--color-bg-alt);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-  }
-
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .meta-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-  }
-
-  .meta-value {
-    font-size: 0.9375rem;
-    color: var(--color-text);
-    font-weight: 500;
-  }
-
-  .project-metrics-section {
-    margin-bottom: 3rem;
-  }
-
-  .metrics-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: 1.5rem;
-  }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-    gap: 1rem;
-  }
-
-  .metric-card {
-    padding: 1.5rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    transition: all var(--transition-base);
-  }
-
-  .metric-card:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .metric-value {
-    font-size: 1rem;
-    color: var(--color-primary);
-    font-weight: 500;
-    line-height: 1.6;
-  }
-</style>

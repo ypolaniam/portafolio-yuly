@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProjectDetailClient from "../components/ProjectDetailClient.tsx";
+
+// On static hosting, project detail routes are only pre-rendered for the seed
+// slugs. Projects created later from the admin panel don't have a pre-built
+// HTML file, so navigating to them would 404. Cloudflare Pages serves this
+// 404.html for any unmatched route, so we detect a /trabajo/<slug> path and
+// render the detail client-side from Firestore.
+const path = Astro.url.pathname;
+const match = path.match(/\/trabajo\/([^/]+)\/?$/);
+const slug = match ? decodeURIComponent(match[1]) : undefined;
+---
+
+<BaseLayout
+  title="Proyecto — Yuly Polanía Molano"
+  description="Detalle del proyecto"
+  noindex={true}
+>
+  <ProjectDetailClient client:only="react" initialSlug={slug} />
+</BaseLayout>

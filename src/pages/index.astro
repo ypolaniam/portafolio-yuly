@@ -2,17 +2,27 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import IntroScene from "../components/IntroScene.astro";
 import Hero from "../components/Hero.astro";
-import ProjectsGrid from "../components/ProjectsGrid.astro";
+import ProjectsGridClient from "../components/ProjectsGridClient.tsx";
 import About from "../components/About.astro";
 import Timeline from "../components/Timeline.astro";
 import Contact from "../components/Contact.astro";
-import { projects } from "../data/projects.js";
 ---
 
 <BaseLayout title="PolaMola — Diseñadora UI/UX" description="Portafolio de PolaMola — Diseñadora UI/UX especializada en productos digitales, sistemas de diseño y branding." hideHeaderIntro={true} showIntro={true}>
   <Hero />
-  <ProjectsGrid projects={projects} />
+  <ProjectsGridClient client:load />
   <About />
   <Timeline />
   <Contact />
 </BaseLayout>
+
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeOutUp {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-30px); }
+  }
+</style>

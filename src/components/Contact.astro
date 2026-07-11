@@ -1,5 +1,7 @@
 ---
 import MotionWrapper from "./MotionWrapper.astro";
+
+const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
 ---
 
 <section id="contacto" class="contact" aria-labelledby="contacto-title">
@@ -18,41 +20,48 @@ import MotionWrapper from "./MotionWrapper.astro";
 
     <MotionWrapper delay={250}>
       <div class="contact-grid">
-         <form class="contact-form" action="https://formspree.io/f/your-form-id" method="POST">
-          <div class="form-group">
-            <label for="name">Nombre</label>
-            <input type="text" id="name" name="name" placeholder="Tu nombre" required />
-          </div>
-          
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="tu@email.com" required />
-          </div>
-          
-          <div class="form-group">
-            <label for="project">Tipo de proyecto</label>
-            <select id="project" name="project">
-              <option value="">Selecciona una opción</option>
-              <option value="estrategia-digital">Estrategia Digital</option>
-              <option value="identidad-visual">Identidad Visual / Branding</option>
-              <option value="ux-ui">Diseño UX/UI</option>
-              <option value="contenido-audiovisual">Contenido Audiovisual</option>
-              <option value="diseño-editorial">Diseño Editorial</option>
-              <option value="consultoria">Consultoría</option>
-              <option value="otro">Otro</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="message">Mensaje</label>
-            <textarea id="message" name="message" placeholder="Cuéntame sobre tu proyecto..." required></textarea>
-          </div>
-          
-          <button type="submit" class="btn-primary form-submit">
-            Enviar mensaje
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </button>
-        </form>
+         <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value={web3formsKey} />
+            <input type="hidden" name="subject" value="Nuevo mensaje desde portafolio Yuly Polanía" />
+            <input type="hidden" name="from_name" value="Portafolio Yuly Polanía" />
+            
+            <div class="form-group">
+              <label for="name">Nombre</label>
+              <input type="text" id="name" name="name" placeholder="Tu nombre" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="tu@email.com" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="project">Tipo de proyecto</label>
+              <select id="project" name="project">
+                <option value="">Selecciona una opción</option>
+                <option value="estrategia-digital">Estrategia Digital</option>
+                <option value="identidad-visual">Identidad Visual / Branding</option>
+                <option value="ux-ui">Diseño UX/UI</option>
+                <option value="contenido-audiovisual">Contenido Audiovisual</option>
+                <option value="diseño-editorial">Diseño Editorial</option>
+                <option value="consultoria">Consultoría</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Mensaje</label>
+              <textarea id="message" name="message" placeholder="Cuéntame sobre tu proyecto..." required></textarea>
+            </div>
+            
+            <button type="submit" class="btn-primary form-submit" disabled={!web3formsKey} title={web3formsKey ? "" : "Falta configurar PUBLIC_WEB3FORMS_ACCESS_KEY"}>
+              {web3formsKey ? "Enviar mensaje" : "Formulario no configurado"}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            {!web3formsKey && (
+              <p class="form-note">El formulario aún no está conectado. Define <code>PUBLIC_WEB3FORMS_ACCESS_KEY</code> en las variables de entorno (consíguela gratis en web3forms.com).</p>
+            )}
+          </form>
         
         <div class="contact-info">
           <h3 class="contact-section-title reveal-text" data-reveal="word">O escríbeme directo</h3>
@@ -183,6 +192,24 @@ import MotionWrapper from "./MotionWrapper.astro";
   .form-submit {
     margin-top: 0.5rem;
     width: 100%;
+  }
+  
+  .form-note {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    line-height: 1.6;
+  }
+  
+  .form-note code {
+    font-size: 0.75rem;
+    background: rgba(139, 92, 246, 0.12);
+    color: var(--color-primary);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
   }
   
   .contact-info {

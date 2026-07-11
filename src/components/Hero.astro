@@ -203,9 +203,12 @@ import MotionWrapper from "./MotionWrapper.astro";
   });
 
   // Intro reveal: staging hero after intro scene
+  let introTries = 0;
   const waitIntro = setInterval(() => {
     const intro = document.querySelector('.intro-scene');
-    if (!intro) {
+    // Reveal once the intro scene is gone, or as a safety net if it never
+    // removes itself (e.g. the intro script throws) so the home never stays hidden.
+    if (!intro || introTries++ > 70) {
       clearInterval(waitIntro);
       const heroEl = document.querySelector('.hero');
       if (heroEl) heroEl.classList.add('hero-visible');
