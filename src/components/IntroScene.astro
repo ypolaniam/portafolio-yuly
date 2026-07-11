@@ -1,0 +1,217 @@
+---
+interface Props {
+  onComplete?: () => void;
+}
+
+const { onComplete } = Astro.props;
+---
+
+<div class="intro-scene" aria-hidden="true">
+  <div class="intro-orbs">
+    <div class="intro-orb o1"></div>
+    <div class="intro-orb o2"></div>
+    <div class="intro-orb o3"></div>
+    <div class="intro-orb o4"></div>
+  </div>
+  <div class="intro-grid"></div>
+  <div class="intro-brand">
+    <span class="intro-brand-text">Yuly Polanía</span>
+    <span class="intro-brand-dot">.</span>
+  </div>
+</div>
+
+<script type="module">
+  import { animate } from "motion";
+
+  const scene = document.querySelector('.intro-scene');
+  const orbs = document.querySelectorAll('.intro-orb');
+  const grid = document.querySelector('.intro-grid');
+  const brand = document.querySelector('.intro-brand');
+  const brandText = document.querySelector('.intro-brand-text');
+  const brandDot = document.querySelector('.intro-brand-dot');
+  const root = document.documentElement;
+  const body = document.body;
+
+  body.style.overflow = 'hidden';
+  root.style.setProperty('--intro-opacity', '1');
+
+  const tl = [];
+
+  // Phase 1: orbs come together
+  orbs.forEach((orb, i) => {
+    tl.push(
+      animate(orb,
+        {
+          x: ['110vw', '0vw'],
+          y: ['-50vh', '0vh'],
+          rotate: [180 + i * 40, 0],
+          scale: [0, 1],
+          opacity: [0, 0.6]
+        },
+        {
+          duration: 1.1 + i * 0.12,
+          ease: [0.16, 1, 0.3, 1],
+          delay: i * 0.07
+        }
+      )
+    );
+  });
+
+  if (grid) {
+    tl.push(
+      animate(grid,
+        { opacity: [0, 1], scale: [1.4, 1] },
+        { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }
+      )
+    );
+  }
+
+  // Phase 1b: brand text reveal
+  if (brandText && brandDot) {
+    tl.push(
+      animate(brand,
+        { opacity: [0, 1], scale: [0.9, 1], y: [20, 0] },
+        { duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.25 }
+      )
+    );
+    tl.push(
+      animate(brandDot,
+        { opacity: [0, 1], scale: [0, 1] },
+        { duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.55 }
+      )
+    );
+  }
+
+  // Phase 2: brand fades out, orbs expand outward
+  Promise.all(tl).then(() => {
+    if (!scene) return;
+    const outTl = [];
+
+    if (brand) {
+      outTl.push(
+        animate(brand,
+          { opacity: [1, 0], scale: [1, 1.05], filter: ['blur(0px)', 'blur(12px)'] },
+          { duration: 0.9, ease: [0.76, 0, 0.24, 1] }
+        )
+      );
+    }
+
+    Promise.all(outTl).then(() => {
+      const expansions = [];
+      orbs.forEach((orb, i) => {
+        const angle = (i / orbs.length) * Math.PI * 2;
+        const tx = Math.cos(angle) * 80;
+        const ty = Math.sin(angle) * 80;
+        expansions.push(
+          animate(orb,
+            {
+              x: [0, `${tx}vw`],
+              y: [0, `${ty}vh`],
+              scale: [1, 1.8],
+              opacity: [0.6, 0]
+            },
+            {
+              duration: 1,
+              ease: [0.76, 0, 0.24, 1],
+              delay: i * 0.05
+            }
+          )
+        );
+      });
+
+      Promise.all(expansions).then(() => {
+        animate(scene,
+          { opacity: 0 },
+          { duration: 0.4, ease: 'easeOut', delay: 0.08 }
+        ).then(() => {
+          scene.remove();
+          root.style.setProperty('--intro-opacity', '0');
+          body.style.overflow = '';
+          if (onComplete) onComplete();
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .intro-scene {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: var(--intro-opacity, 1);
+    transition: opacity 0.5s ease;
+  }
+
+  .intro-orbs {
+    position: absolute;
+    inset: 0;
+  }
+
+  .intro-orb {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -250px;
+    margin-left: -250px;
+    border-radius: 60% 40% 30% 70% / 40% 30% 70% 60%;
+    background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(59,130,246,0.25));
+    filter: blur(70px);
+    will-change: transform, opacity;
+  }
+
+  .intro-orb.o1 { width: 500px; height: 500px; }
+  .intro-orb.o2 { width: 320px; height: 320px; }
+  .intro-orb.o3 { width: 260px; height: 260px; }
+  .intro-orb.o4 { width: 380px; height: 380px; }
+
+  .intro-grid {
+    position: absolute;
+    inset: -50%;
+    background-image:
+      linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
+    background-size: 90px 90px;
+    opacity: 0;
+  }
+
+  .intro-brand {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity, filter;
+    z-index: 2;
+  }
+
+  .intro-brand-text {
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 4px 24px rgba(139,92,246,0.4));
+  }
+
+  .intro-brand-dot {
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 800;
+    color: var(--color-primary-light, #A855F7);
+    opacity: 0;
+    transform: scale(0);
+    will-change: transform, opacity;
+    filter: drop-shadow(0 4px 24px rgba(139,92,246,0.6));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-scene { display: none; }
+  }
+</style>

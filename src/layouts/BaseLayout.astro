@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import IntroScene from "../components/IntroScene.astro";
 
 interface Props {
   title?: string;
@@ -24,6 +25,7 @@ const {
   </head>
   <body>
     <a href="#main" class="skip-link">Saltar al contenido</a>
+    <IntroScene />
     
     <!-- Scroll progress bar -->
     <div class="scroll-progress" aria-hidden="true">
@@ -36,7 +38,7 @@ const {
     </button>
 
     <!-- Fixed Navigation - Sofia Cadena style -->
-    <header class="site-header">
+    <header class="site-header header-intro-hidden">
       <div class="header-inner">
         <div class="brand">
           <a href="/" class="logo">Yuly Polanía<span class="accent">.</span></a>

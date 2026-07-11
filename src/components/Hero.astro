@@ -2,29 +2,41 @@
 import MotionWrapper from "./MotionWrapper.astro";
 ---
 
-<section class="hero" aria-label="Presentación">
+<section class="hero hero-loading" aria-label="Presentación">
+  <div class="hero-visual">
+    <div class="hero-photo">
+      <img src="https://placehold.co/600x800/8B5CF6/FFFFFF?text=Yuly" alt="Yuly Alejandra Polanía Molano" loading="eager" />
+    </div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
   <div class="hero-inner">
-    <MotionWrapper delay={100} stagger={0.12}>
-      <p class="hero-overline">Estratega de Contenido · Diseñadora Visual</p>
+    <div class="hero-content">
+      <p class="hero-overline reveal-item">Estratega de Contenido · Diseñadora Visual</p>
       
-      <h1 class="hero-title">
+      <h1 class="hero-title reveal-item">
         <span class="gradient-text">Yuly Alejandra</span>
         <br>
         <span class="gradient-text">Polania Molano</span>
       </h1>
       
-      <p class="hero-subtitle">
+      <p class="hero-subtitle reveal-item">
         Diseñadora con curiosidad inquieta y visión transformadora. Combino diseño gráfico e industrial 
         para crear experiencias visuales y narrativas que conectan con lo intuitivo. 
         Creo en el diseño con propósito, evolución constante e impacto de los pequeños detalles.
       </p>
       
-      <div class="hero-actions">
+      <div class="hero-actions reveal-item">
         <a href="#trabajo" class="btn-primary magnetic">Ver trabajo</a>
         <a href="#contacto" class="btn-secondary magnetic">Contactar</a>
       </div>
       
-      <div class="hero-stats">
+      <div class="hero-stats reveal-item">
         <div class="stat">
           <span class="stat-number" data-count="4">0</span>
           <span class="stat-label">Años experiencia</span>
@@ -38,21 +50,9 @@ import MotionWrapper from "./MotionWrapper.astro";
           <span class="stat-label">% Crecimiento orgánico</span>
         </div>
       </div>
-    </MotionWrapper>
-    
-    <div class="hero-visual" data-parallax>
-      <div class="hero-photo">
-        <img src="https://placehold.co/600x800/8B5CF6/FFFFFF?text=Yuly" alt="Yuly Alejandra Polanía Molano" loading="eager" />
-      </div>
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="grid-overlay"></div>
     </div>
   </div>
-  
+
   <div class="scroll-indicator" aria-hidden="true">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M12 5v14M19 12l-7 7-7-7"/>
@@ -142,7 +142,7 @@ import MotionWrapper from "./MotionWrapper.astro";
   const hero = document.querySelector('.hero');
   const visual = document.querySelector('.hero-visual');
   const grid = document.querySelector('.grid-overlay');
-  const content = document.querySelector('.hero-content');
+  const content = document.querySelector('.hero-inner');
   
   if (hero && visual) {
     scroll(
@@ -187,32 +187,6 @@ import MotionWrapper from "./MotionWrapper.astro";
     );
   }
   
-  // Mouse move parallax for shapes
-  let mouseX = 0, mouseY = 0;
-  document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-  });
-  
-  function updateMouseParallax() {
-    shapes.forEach((shape, i) => {
-      const factor = (i + 1) * 15;
-      const x = mouseX * factor;
-      const y = mouseY * factor;
-      shape.style.transform = `translate(${x}px, ${y}px)`;
-    });
-    
-    orbs.forEach((orb, i) => {
-      const factor = (i + 1) * 30;
-      const x = mouseX * factor;
-      const y = mouseY * factor;
-      orb.style.transform = `translate(${x}px, ${y}px)`;
-    });
-    
-    requestAnimationFrame(updateMouseParallax);
-  }
-  updateMouseParallax();
-  
   // Magnetic buttons
   document.querySelectorAll('.magnetic').forEach(btn => {
     btn.addEventListener('mousemove', (e) => {
@@ -227,50 +201,83 @@ import MotionWrapper from "./MotionWrapper.astro";
       btn.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
     });
   });
+
+  // Intro reveal: staging hero after intro scene
+  const waitIntro = setInterval(() => {
+    const intro = document.querySelector('.intro-scene');
+    if (!intro) {
+      clearInterval(waitIntro);
+      const heroEl = document.querySelector('.hero');
+      if (heroEl) heroEl.classList.add('hero-visible');
+
+      const revealItems = document.querySelectorAll('.reveal-item');
+      const photo = document.querySelector('.hero-photo');
+      const blobs = document.querySelectorAll('.blob');
+      const orbs = document.querySelectorAll('.orb');
+      const grid = document.querySelector('.grid-overlay');
+      const indicator = document.querySelector('.scroll-indicator');
+      const header = document.querySelector('.site-header');
+      const logo = document.querySelector('.logo');
+      const navLinks = document.querySelectorAll('.nav-link');
+
+      requestAnimationFrame(() => {
+        if (photo) {
+          animate(photo, { opacity: [0, 1], rotateY: ['-15deg', '0deg'], x: [60, 0], scale: [0.9, 1] }, { duration: 1.3, ease: [0.16, 1, 0.3, 1] });
+        }
+
+        revealItems.forEach((el, i) => {
+          animate(el, { opacity: [0, 1], y: [30, 0] }, { duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.12 + i * 0.07 });
+        });
+
+        blobs.forEach((blob, i) => {
+          blob.style.opacity = '0';
+          animate(blob, { opacity: [0, 0.18], scale: [0.5, 1], y: [50, 0] }, { duration: 1.7, ease: [0.16, 1, 0.3, 1], delay: 0.25 + i * 0.1 });
+        });
+
+        orbs.forEach((orb, i) => {
+          orb.style.opacity = '0';
+          animate(orb, { opacity: [0, 0.18], scale: [0.6, 1], y: [-40, 0] }, { duration: 1.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 + i * 0.13 });
+        });
+
+        if (grid) {
+          grid.style.opacity = '0';
+          animate(grid, { opacity: [0, 1], rotate: [4, 0] }, { duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.45 });
+        }
+
+        if (indicator) {
+          indicator.style.opacity = '0';
+          animate(indicator, { opacity: [0, 1], y: [15, 0] }, { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 1.1 });
+        }
+
+        // Header reveal: looks like Yuly Polania continues into the navbar
+        if (header) {
+          header.classList.add('header-visible');
+          if (logo) {
+            logo.style.opacity = '0';
+            logo.style.transform = 'translateY(-10px)';
+            logo.style.filter = 'blur(6px)';
+            animate(logo,
+              { opacity: [0, 1], y: [-10, 0], filter: ['blur(6px)', 'blur(0px)'] },
+              { duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.4 }
+            );
+          }
+          navLinks.forEach((link, i) => {
+            link.style.opacity = '0';
+            link.style.transform = 'translateY(-8px)';
+            animate(link,
+              { opacity: [0, 1], y: [-8, 0] },
+              { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.55 + i * 0.07 }
+            );
+          });
+        }
+      });
+    }
+  }, 120);
   
   // Reduced motion
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    shapes.forEach(s => s.style.animation = 'none');
-    orbs.forEach(o => o.style.animation = 'none');
-  }
-
-  // Hero photo float animation
-  const photo = document.querySelector('.hero-photo');
-  if (photo) {
-    animate(photo, 
-      { y: [0, -10, 0], rotate: [0, 0.5, 0] },
-      { duration: 6, repeat: Infinity, ease: "easeInOut" }
-    );
+    document.querySelectorAll('.mesh-blob, .glass-panel').forEach(el => {
+      el.style.animation = 'none';
+    });
   }
 </script>
-
-<style>
-  .hero-photo {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 420px;
-    aspect-ratio: 3/4;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    box-shadow: var(--shadow-xl);
-    margin-left: auto;
-    will-change: transform;
-  }
-
-  .hero-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .hero-photo::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.1) 100%);
-    mix-blend-mode: overlay;
-    pointer-events: none;
-  }
-</style>
