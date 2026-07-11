@@ -5,11 +5,15 @@ import IntroScene from "../components/IntroScene.astro";
 interface Props {
   title?: string;
   description?: string;
+  hideHeaderIntro?: boolean;
+  showIntro?: boolean;
 }
 
 const { 
   title = "Yuly Alejandra Polanía Molano - Diseñadora Visual de Contenido", 
-  description = "Portafolio de Yuly Alejandra Polanía Molano - Estratega de Contenido y Diseñadora Visual" 
+  description = "Portafolio de Yuly Alejandra Polanía Molano - Estratega de Contenido y Diseñadora Visual",
+  hideHeaderIntro = false,
+  showIntro = false
 } = Astro.props;
 ---
 
@@ -25,7 +29,7 @@ const {
   </head>
   <body>
     <a href="#main" class="skip-link">Saltar al contenido</a>
-    <IntroScene />
+    {showIntro && <IntroScene />}
     
     <!-- Scroll progress bar -->
     <div class="scroll-progress" aria-hidden="true">
@@ -38,22 +42,26 @@ const {
     </button>
 
     <!-- Fixed Navigation - Sofia Cadena style -->
-    <header class="site-header header-intro-hidden">
+    <header class:list={["site-header", hideHeaderIntro && "header-intro-hidden"]}>
       <div class="header-inner">
         <div class="brand">
           <a href="/" class="logo">Yuly Polanía<span class="accent">.</span></a>
           <span class="brand-tagline">Estratega de Contenido · Diseñadora Visual</span>
         </div>
         <nav class="nav" aria-label="Principal">
-          <a href="#trabajo" class="nav-link" data-nav="trabajo">
+          <a href="/#trabajo" class="nav-link" data-nav="trabajo">
             Trabajo
             <span class="nav-underline"></span>
           </a>
-          <a href="#sobre-mi" class="nav-link" data-nav="sobre-mi">
+          <a href="/#sobre-mi" class="nav-link" data-nav="sobre-mi">
             Sobre mí
             <span class="nav-underline"></span>
           </a>
-          <a href="#contacto" class="nav-link" data-nav="contacto">
+          <a href="/#trayectoria" class="nav-link" data-nav="trayectoria">
+            Trayectoria
+            <span class="nav-underline"></span>
+          </a>
+          <a href="/#contacto" class="nav-link" data-nav="contacto">
             Contacto
             <span class="nav-underline"></span>
           </a>
@@ -122,18 +130,21 @@ const {
       bootReveal();
       document.addEventListener('astro:page-load', bootReveal);
 
-      // Smooth scroll for anchor links
+      // Smooth scroll for same-page anchor links only
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          const targetId = this.getAttribute('href');
-          if (targetId === '#') return;
-          const target = document.querySelector(targetId);
-          if (target) {
+        const targetId = anchor.getAttribute('href');
+        if (!targetId || targetId === '#') return;
+
+        const isAbsoluteNavLink = targetId.startsWith('/#');
+        const target = document.querySelector(targetId.replace(/^\/#/, '#') || targetId);
+
+        if (!isAbsoluteNavLink && target) {
+          anchor.addEventListener('click', function(e) {
             e.preventDefault();
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             history.pushState(null, '', targetId);
-          }
-        });
+          });
+        }
       });
 
       // Enhanced button micro-interactions
@@ -173,6 +184,23 @@ const {
         link.addEventListener('mouseleave', () => {
           animate(link, { x: 0 }, { duration: 0.4, ease: [0.16, 1, 0.3, 1] });
         });
+      });
+
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+      if (!window.location.hash) {
+        window.scrollTo(0, 0);
+      }
+      document.addEventListener('astro:page-load', () => {
+        if (!window.location.hash) {
+          window.scrollTo(0, 0);
+        }
+        const header = document.querySelector('.site-header.header-intro-hidden');
+        if (header && window.location.hash) {
+          header.classList.add('header-visible');
+          header.classList.remove('header-intro-hidden');
+        }
       });
     </script>
   </body>

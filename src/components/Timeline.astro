@@ -1,0 +1,337 @@
+---
+import MotionWrapper from "./MotionWrapper.astro";
+import { timeline } from "../data/timeline.js";
+---
+
+<section id="trayectoria" class="timeline-section" aria-labelledby="timeline-title">
+  <MotionWrapper delay={100}>
+    <header class="timeline-header">
+      <p class="hero-overline reveal-text" data-reveal="word">Trayectoria</p>
+      <h2 id="timeline-title" class="section-title reveal">
+        Experiencia <span class="gradient-text">profesional</span>
+      </h2>
+      <p class="section-description reveal-text" data-reveal="word">
+        Un recorrido por mi trayectoria profesional.
+      </p>
+    </header>
+  </MotionWrapper>
+
+  <MotionWrapper delay={350}>
+    <div class="timeline">
+      <div class="timeline-line" aria-hidden="true"></div>
+      <div class="timeline-items">
+        {timeline.map((item, index) => (
+          <article
+            class="timeline-item"
+            data-reveal
+            data-type={item.type}
+            data-index={index}>
+            <div class="timeline-dot" aria-hidden="true"></div>
+            <div class="timeline-card reveal-item">
+              <div class="timeline-card-header">
+                <div class="timeline-icon" aria-hidden="true">
+                  {item.type === "experience" && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  )}
+                </div>
+                <div class="timeline-card-meta">
+                  {item.period && <span class="timeline-period">{item.period}</span>}
+                  {item.location && <span class="timeline-location">{item.location}</span>}
+                </div>
+              </div>
+
+              {item.title && <h3 class="timeline-title">{item.title}</h3>}
+              {item.institution && <p class="timeline-institution">{item.institution}</p>}
+              {item.description && <p class="timeline-description">{item.description}</p>}
+
+              {item.tags && (
+                <div class="timeline-tags">
+                  {item.tags.map((tag) => (
+                    <span class="timeline-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+
+              {item.href && (
+                <a href={item.href} target="_blank" rel="noopener" class="timeline-link">
+                  Ver perfil →
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </MotionWrapper>
+</section>
+
+<script type="module">
+  import { animate, scroll, inView } from "motion";
+
+  const timelineSection = document.querySelector('.timeline-section');
+  const timelineLine = document.querySelector('.timeline-line');
+  const timelineItems = document.querySelectorAll('.timeline-item');
+
+  if (timelineSection && timelineLine) {
+    scroll(
+      (progress) => {
+        timelineLine.style.transform = `scaleY(${progress})`;
+      },
+      { target: timelineSection, offset: ["start start", "end end"] }
+    );
+  }
+
+  timelineItems.forEach((item) => {
+    inView(item, () => {
+      const dot = item.querySelector('.timeline-dot');
+      const card = item.querySelector('.timeline-card');
+
+      if (dot) {
+        dot.classList.add('visible');
+      }
+
+      if (card) {
+        animate(card,
+          { opacity: [0, 1], y: [40, 0], scale: [0.96, 1] },
+          { duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }
+        );
+      }
+    }, { once: true, margin: "-80px" });
+  });
+</script>
+
+<style>
+  .timeline-section {
+    position: relative;
+    width: 100%;
+    padding: var(--section-padding-y) var(--section-padding-x);
+    scroll-margin-top: var(--header-height);
+  }
+
+  .timeline {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .timeline-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-primary), var(--color-secondary));
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+    will-change: transform;
+  }
+
+  @media (max-width: 768px) {
+    .timeline-line {
+      left: 24px;
+    }
+  }
+
+  .timeline-items {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    width: 100%;
+    max-width: 1000px;
+    padding: 0 1rem;
+  }
+
+  .timeline-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .timeline-item:nth-child(odd) {
+    flex-direction: row;
+  }
+
+  .timeline-item:nth-child(even) {
+    flex-direction: row-reverse;
+  }
+
+  @media (max-width: 768px) {
+    .timeline-item:nth-child(odd),
+    .timeline-item:nth-child(even) {
+      flex-direction: row;
+      padding-left: 48px;
+    }
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: 50%;
+    top: 2rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-bg);
+    border: 3px solid var(--color-primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+
+  .timeline-dot.visible {
+    transform: translateX(-50%) scale(1);
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    .timeline-dot {
+      left: 24px;
+    }
+  }
+
+  .timeline-card {
+    flex: 1;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.75rem;
+    transition: all var(--transition-base);
+    will-change: transform, opacity;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .timeline-item:nth-child(odd) .timeline-card {
+    margin-right: auto;
+    max-width: calc(50% - 2rem);
+  }
+
+  .timeline-item:nth-child(even) .timeline-card {
+    margin-left: auto;
+    max-width: calc(50% - 2rem);
+  }
+
+  @media (max-width: 768px) {
+    .timeline-item:nth-child(odd) .timeline-card,
+    .timeline-item:nth-child(even) .timeline-card {
+      max-width: 100%;
+      margin: 0;
+    }
+  }
+
+  .timeline-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .timeline-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .timeline-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .timeline-period {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .timeline-location {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .timeline-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+  }
+
+  .timeline-institution {
+    font-size: 0.9375rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.75rem;
+  }
+
+  .timeline-description {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .timeline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .timeline-tag {
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 1000px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    transition: all var(--transition-base);
+  }
+
+  .timeline-tag:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .timeline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: gap var(--transition-base);
+  }
+
+  .timeline-link:hover {
+    gap: 0.75rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-line {
+      transform: translateX(-50%) scaleY(1);
+    }
+    .timeline-dot {
+      transform: translateX(-50%) scale(1);
+    }
+    .timeline-card {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MotionWrapper from "../../components/MotionWrapper.astro";
+import ProjectCarousel from "../../components/ProjectCarousel.astro";
 import { projects } from "../../data/projects.js";
 
 export async function getStaticPaths() {
@@ -22,7 +23,7 @@ const { project } = Astro.props;
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
-          Volver al trabajo
+          Volver
         </a>
         <span class="project-category">{project.category}</span>
         <h1 class="project-detail-title">{project.title}</h1>
@@ -86,6 +87,8 @@ const { project } = Astro.props;
         </div>
       </div>
     </MotionWrapper>
+
+    <ProjectCarousel currentSlug={project.slug} />
   </article>
 </BaseLayout>
 

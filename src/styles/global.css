@@ -120,14 +120,14 @@ button, input, textarea, select {
 }
 
 /* Header hidden during intro animation */
-.header-intro-hidden {
+.site-header.header-intro-hidden {
   opacity: 0;
   transform: translateY(-16px);
   pointer-events: none;
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.header-intro-hidden.header-visible {
+.site-header.header-intro-hidden.header-visible {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -243,18 +243,22 @@ section:nth-of-type(even) {
   min-height: 100vh;
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--header-height);
 }
 
 .work {
   background: var(--gradient-section-alt), var(--color-bg-alt);
+  scroll-margin-top: var(--header-height);
 }
 
 .about {
   background: var(--gradient-hero), var(--color-bg);
+  scroll-margin-top: var(--header-height);
 }
 
 .contact {
   background: var(--color-bg-tertiary);
+  scroll-margin-top: var(--header-height);
 }
 
 .site-footer {
@@ -266,18 +270,29 @@ section:nth-of-type(even) {
 /* Inner containers handle vertical spacing */
 .work-header,
 .about-inner,
-.contact-inner {
+.contact-inner,
+.timeline-section,
+.related-projects {
   width: 100%;
   padding: var(--section-padding-y) var(--section-padding-x);
 }
 
-/* ===== TYPOGRAPHY ===== */
-.section-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+/* ===== SECTION LAYOUT / SPACING ===== */
+.section-header,
+.work-header,
+.about-header,
+.contact-header,
+.timeline-header,
+.related-header {
+  width: 100%;
+  text-align: center;
   margin-bottom: 1rem;
+}
+
+.about-inner,
+.contact-inner {
+  width: 100%;
+  padding: var(--section-padding-y) var(--section-padding-x);
 }
 
 .hero-overline {
@@ -287,7 +302,7 @@ section:nth-of-type(even) {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .section-description {
@@ -643,14 +658,6 @@ section:nth-of-type(even) {
     margin-bottom: 4rem;
   }
 
-.work-filters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 3rem;
-}
-
 .filter-btn {
   padding: 0.5rem 1.25rem;
   border: 1px solid var(--color-border);
@@ -944,30 +951,46 @@ section:nth-of-type(even) {
 /* ===== PROJECT DETAIL ===== */
 .project-detail {
   width: 100%;
-  padding: 4rem var(--section-padding-x);
+  padding: 6rem var(--section-padding-x) 4rem;
 }
 
 .project-detail-header {
-  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  max-width: 900px;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  transition: color var(--transition-fast);
+  gap: 0.75rem;
+  color: var(--color-white);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1000px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+  align-self: flex-start;
+  transition: all var(--transition-base);
+  letter-spacing: 0.02em;
 }
 
 .back-link:hover {
-  color: var(--color-primary);
+  transform: translateX(-4px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
 }
 
 .back-link svg {
   flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.back-link:hover svg {
+  transform: translateX(-3px);
 }
 
 .project-detail-header .project-category {
@@ -981,11 +1004,23 @@ section:nth-of-type(even) {
   letter-spacing: -0.02em;
 }
 
+.project-detail-header .project-category {
+  margin-bottom: 0.75rem;
+}
+
+.project-detail-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
 .project-detail-image {
   border-radius: var(--radius-xl);
   overflow: hidden;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
   aspect-ratio: 16 / 9;
+  box-shadow: var(--shadow-lg);
 }
 
 .project-detail-image img {

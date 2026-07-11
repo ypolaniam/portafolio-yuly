@@ -1,0 +1,316 @@
+---
+import MotionWrapper from "./MotionWrapper.astro";
+import { projects } from "../data/projects.ts";
+
+interface Props {
+  currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+
+const related = projects.filter((p) => p.slug !== currentSlug);
+const repeated = [...related, ...related, ...related];
+---
+
+<section
+  class="related-projects"
+  aria-labelledby="related-projects-title"
+  data-current-slug={currentSlug}
+>
+  <div
+    id="related-carousel-state"
+    data-related-count={related.length}
+    hidden
+  ></div>
+
+  <MotionWrapper delay={200}>
+    <header class="related-header">
+      <h2 id="related-projects-title" class="section-title reveal">
+        Ver otros <span class="gradient-text">proyectos</span>
+      </h2>
+      <p class="section-description reveal-text" data-reveal="word">
+        Explora más trabajos de branding, diseño digital y experiencia de usuario.
+      </p>
+    </header>
+  </MotionWrapper>
+
+  <div class="carousel-wrapper">
+    <button class="carousel-btn carousel-btn-prev" aria-label="Anterior">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    </button>
+    <div class="carousel-track" id="related-carousel">
+      {repeated.map((project) => (
+        <article class="project-card">
+          <a href={`/trabajo/${project.slug}/`} class="project-card-link" aria-label={`Ver detalle: ${project.title}`}>
+            <div class="project-card-image">
+              <img src={project.image} alt={project.title} loading="lazy" />
+              <div class="project-card-overlay">
+                <span class="overlay-title">Ver proyecto →</span>
+                {project.metrics ? (
+                  <span class="overlay-metric">
+                    {typeof project.metrics === "string" ? project.metrics : project.metrics[0]}
+                  </span>
+                ) : (
+                  ""
+                )}
+              </div>
+              <span class="project-card-tag">{project.category}</span>
+            </div>
+            <div class="project-card-content">
+              <h3 class="project-title">{project.title}</h3>
+              {project.metrics ? (
+                <div class="project-metrics">
+                  <span class="metric">
+                    {Array.isArray(project.metrics) ? project.metrics[0] : project.metrics}
+                  </span>
+                </div>
+              ) : (
+                ""
+              )}
+              {project.client ? <p class="project-client">{project.client}</p> : ""}
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+    <button class="carousel-btn carousel-btn-next" aria-label="Siguiente">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
+  </div>
+</section>
+
+<script type="module">
+  (() => {
+    const track = document.getElementById("related-carousel");
+    const prevBtn = document.querySelector(".carousel-btn-prev");
+    const nextBtn = document.querySelector(".carousel-btn-next");
+    const stateHost = document.getElementById("related-carousel-state");
+
+    if (!track || !prevBtn || !nextBtn || !stateHost) {
+      return;
+    }
+
+    const relatedCount = Number(stateHost.dataset.relatedCount || "0");
+    if (!relatedCount) {
+      return;
+    }
+
+    const cards = Array.from(track.querySelectorAll(".project-card"));
+    if (!cards.length) {
+      return;
+    }
+
+    const getStep = () => {
+      const first = cards[0];
+      const second = cards[1];
+      if (!first || !second) return 320;
+      return Math.max(second.offsetLeft - first.offsetLeft, 320);
+    };
+
+    const getBlockWidth = () => {
+      return getStep() * relatedCount;
+    };
+
+    let isNormalizing = false;
+    let autoplayTimer = null;
+    let resumeTimer = null;
+    let lastInteraction = Date.now();
+    const AUTOPLAY_DELAY = 2200;
+    const RESUME_DELAY = 2000;
+    const COOLDOWN = 2200;
+
+    const normalize = () => {
+      const step = getStep();
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const left = track.scrollLeft;
+
+      if (left < step * 0.5 && maxScroll > 0) {
+        isNormalizing = true;
+        track.style.scrollBehavior = "auto";
+        track.scrollLeft = maxScroll;
+        requestAnimationFrame(() => {
+          isNormalizing = false;
+        });
+        return;
+      }
+
+      if (left > maxScroll - step * 0.5 && maxScroll > 0) {
+        isNormalizing = true;
+        track.style.scrollBehavior = "auto";
+        track.scrollLeft = step;
+        requestAnimationFrame(() => {
+          isNormalizing = false;
+        });
+      }
+    };
+
+    const scrollNext = () => {
+      const step = getStep();
+      track.style.scrollBehavior = "smooth";
+      track.scrollLeft = track.scrollLeft + step;
+    };
+
+    const scrollPrev = () => {
+      const step = getStep();
+      track.style.scrollBehavior = "smooth";
+      track.scrollLeft = track.scrollLeft - step;
+    };
+
+    nextBtn.addEventListener("click", () => {
+      lastInteraction = Date.now();
+      stopAutoplay();
+      if (resumeTimer) clearTimeout(resumeTimer);
+      scrollNext();
+      resetAutoplayCooldown();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      lastInteraction = Date.now();
+      stopAutoplay();
+      if (resumeTimer) clearTimeout(resumeTimer);
+      scrollPrev();
+      resetAutoplayCooldown();
+    });
+
+    let normalizeTimeout;
+    track.addEventListener("scroll", () => {
+      clearTimeout(normalizeTimeout);
+      normalizeTimeout = setTimeout(() => {
+        if (!isNormalizing) {
+          normalize();
+        }
+      }, 80);
+    }, { passive: true });
+
+    const startAutoplay = () => {
+      stopAutoplay();
+      autoplayTimer = setInterval(() => {
+        const elapsed = Date.now() - lastInteraction;
+        if (elapsed >= COOLDOWN && !track.matches(":hover")) {
+          scrollNext();
+        }
+      }, AUTOPLAY_DELAY);
+    };
+
+    const stopAutoplay = () => {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+    };
+
+    const resetAutoplayCooldown = () => {
+      stopAutoplay();
+      if (resumeTimer) clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        if (Date.now() - lastInteraction >= COOLDOWN) {
+          startAutoplay();
+        }
+      }, RESUME_DELAY);
+    };
+
+    track.addEventListener("pointerenter", stopAutoplay);
+    track.addEventListener("pointerleave", () => {
+      lastInteraction = Date.now();
+      resetAutoplayCooldown();
+    });
+
+    track.style.scrollBehavior = "auto";
+    track.scrollLeft = getStep() * relatedCount;
+
+    normalize();
+    startAutoplay();
+  })();
+</script>
+
+<style>
+  .related-projects {
+    position: relative;
+    width: 100%;
+    padding: 0 var(--section-padding-x);
+    margin-top: 4rem;
+  }
+
+  .carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 0.5rem 0.25rem 1rem;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+  }
+
+  .carousel-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+  }
+
+  .carousel-btn:active {
+    transform: scale(0.95);
+  }
+
+  .carousel-btn-prev {
+    margin-left: -0.5rem;
+  }
+
+  .carousel-btn-next {
+    margin-right: -0.5rem;
+  }
+
+  .related-projects .project-card {
+    min-width: 320px;
+    max-width: 360px;
+    flex: 1 1 320px;
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 540px) {
+    .related-projects .project-card {
+      min-width: 280px;
+      max-width: 300px;
+      flex: 1 1 280px;
+    }
+
+    .carousel-btn {
+      width: 40px;
+      height: 40px;
+    }
+  }
+</style>

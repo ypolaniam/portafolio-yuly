@@ -23,7 +23,7 @@ const { projects } = Astro.props;
 const categories = [...new Set(projects.map(p => p.category))];
 ---
 
-<section id="trabajo" class="work" aria-labelledby="trabajo-title">
+  <section id="trabajo" class="work" aria-labelledby="trabajo-title">
   <MotionWrapper delay={100}>
     <header class="work-header">
       <p class="hero-overline reveal-text" data-reveal="word">Trabajo</p>
@@ -319,17 +319,12 @@ const categories = [...new Set(projects.map(p => p.category))];
 </script>
 
 <style>
-  .work-header {
-    margin-bottom: 4rem;
-    text-align: center;
-  }
-
   .category-filter {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
   }
 
   .filter-btn {
@@ -359,8 +354,14 @@ const categories = [...new Set(projects.map(p => p.category))];
   .projects-rows {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     width: 100%;
+    margin-top: 2rem;
+  }
+
+  .projects-row {
+    display: flex;
+    gap: 1rem;
   }
 
   .projects-row {

@@ -32,6 +32,14 @@ const { onComplete } = Astro.props;
   const root = document.documentElement;
   const body = document.body;
 
+  if (!scene || window.location.hash) {
+    scene?.remove();
+    root.style.setProperty('--intro-opacity', '0');
+    body.style.overflow = '';
+    if (onComplete) onComplete();
+    throw new Error('IntroScene skipped due to hash navigation');
+  }
+
   body.style.overflow = 'hidden';
   root.style.setProperty('--intro-opacity', '1');
 
