@@ -27,7 +27,9 @@ export default function ProjectsGridClient() {
   }, []);
 
   const categories = [...new Set(projects.map((p) => p.category))];
-  const visible = filter === "all" ? projects : projects.filter((p) => p.category === filter);
+  // Hide projects flagged visible === false from the public site.
+  const published = projects.filter((p) => p.visible !== false);
+  const visible = filter === "all" ? published : published.filter((p) => p.category === filter);
 
   useEffect(() => {
     const cards = rowsRef.current?.querySelectorAll<HTMLDivElement>('.project-card[data-category]');

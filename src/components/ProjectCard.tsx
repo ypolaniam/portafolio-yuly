@@ -7,11 +7,13 @@ export interface ProjectCardProps {
   mode?: CardMode;
   onEdit?: (project: Project) => void;
   onDelete?: (slug: string) => void;
+  onToggleVisibility?: (slug: string, visible: boolean) => void;
 }
 
 const FALLBACK_IMAGE = "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Proyecto";
 
-export default function ProjectCard({ project, mode = "display", onEdit, onDelete }: ProjectCardProps) {
+export default function ProjectCard({ project, mode = "display", onEdit, onDelete, onToggleVisibility }: ProjectCardProps) {
+  const isHidden = project.visible === false;
   const [imgSrc, setImgSrc] = useState(() => getOptimizedImageUrl(project.image) || FALLBACK_IMAGE);
 
   useEffect(() => {
@@ -81,8 +83,57 @@ export default function ProjectCard({ project, mode = "display", onEdit, onDelet
         </div>
       )}
 
+      {mode === "edit" && isHidden && (
+        <span style={{
+          position: "absolute",
+          top: "0.75rem",
+          left: "0.75rem",
+          zIndex: 10,
+          padding: "0.25rem 0.5rem",
+          borderRadius: "0.5rem",
+          background: "rgba(245,158,11,0.9)",
+          color: "#1A1206",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.02em",
+        }}>
+          Oculto
+        </span>
+      )}
+
       {mode === "edit" && (
         <div className="card-actions" style={{ position: "absolute", top: "0.75rem", right: "0.75rem", display: "flex", gap: "0.5rem", zIndex: 10 }}>
+          <button
+            type="button"
+            onClick={() => onToggleVisibility?.(project.slug, isHidden)}
+            aria-label={isHidden ? "Mostrar proyecto" : "Ocultar proyecto"}
+            aria-pressed={!isHidden}
+            style={{
+              ...actionButtonStyle,
+              background: isHidden ? "rgba(245,158,11,0.85)" : "rgba(0,0,0,0.45)",
+              borderColor: isHidden ? "transparent" : "rgba(255,255,255,0.3)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = isHidden ? "#F59E0B" : "#8B5CF6";
+              e.currentTarget.style.borderColor = "transparent";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = isHidden ? "rgba(245,158,11,0.85)" : "rgba(0,0,0,0.45)";
+              e.currentTarget.style.borderColor = isHidden ? "transparent" : "rgba(255,255,255,0.3)";
+            }}
+          >
+            {isHidden ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => onEdit?.(project)}

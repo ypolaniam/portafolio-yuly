@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   auth,
   db,
@@ -10,9 +10,24 @@ import {
 } from "firebase/auth";
 import type { User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
-import ProjectCard from "./ProjectCard";
+import SortableProjectItem from "./SortableProjectItem";
 import type { Project } from "../types/project";
-import { upsertProject, removeProject, migrateProjects } from "../lib/projects";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { upsertProject, removeProject, migrateProjects, reorderProjects, setProjectVisibility } from "../lib/projects";
 import { getOptimizedImageUrl } from "../lib/cloudinary";
 
 const COLORS = {
@@ -49,6 +64,7 @@ export default function AdminPanel() {
     tools: [],
     year: new Date().getFullYear().toString(),
     size: "medium",
+    visible: true,
   });
 
   const [form, setForm] = useState<Project>(blankProject());
@@ -60,15 +76,25 @@ export default function AdminPanel() {
     return () => unsub();
   }, []);
 
+  const draggingRef = useRef(false);
+
   useEffect(() => {
     if (!user || !db) return;
     const settingsRef = doc(db, "settings", "cache");
     const unsub = onSnapshot(settingsRef, (snap) => {
+      // Don't clobber the local order while the user is mid-drag.
+      if (draggingRef.current) return;
       const data = (snap.data() as { projects?: Project[] } | undefined);
       setProjects(data?.projects ?? []);
     });
     return () => unsub();
   }, [user]);
+
+  const sensors = useSensors(
+    // distance constraint lets clicks on Edit/Delete buttons through without starting a drag
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +195,39 @@ export default function AdminPanel() {
   const handleDelete = async (slug: string) => {
     if (!confirm("¿Eliminar este proyecto?")) return;
     await removeProject(slug);
+  };
+
+  const handleToggleVisibility = async (slug: string, visible: boolean) => {
+    // Optimistic update for instant feedback; the snapshot will reconcile to the same data.
+    setProjects((prev) => prev.map((p) => (p.slug === slug ? { ...p, visible } : p)));
+    try {
+      await setProjectVisibility(slug, visible);
+    } catch (err) {
+      console.error(err);
+      alert("Error al cambiar la visibilidad");
+    }
+  };
+
+  // Persist ONCE, on drop — not on every drag tick. Rewriting the whole array is
+  // a single Firestore write regardless of list size; the waste was writing on
+  // every micro-movement, which also re-triggered the snapshot mid-drag.
+  const handleDragEnd = async (event: DragEndEvent) => {
+    draggingRef.current = false;
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = projects.findIndex((p) => p.slug === active.id);
+    const newIndex = projects.findIndex((p) => p.slug === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const next = arrayMove(projects, oldIndex, newIndex);
+    setProjects(next);
+    try {
+      await reorderProjects(next);
+    } catch (err) {
+      console.error(err);
+      alert("Error al guardar el orden");
+    }
   };
 
   const handleMigrate = async () => {
@@ -328,14 +387,6 @@ export default function AdminPanel() {
     boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
   };
 
-  const cardStyle: React.CSSProperties = {
-    background: "rgba(17, 16, 29, 0.5)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "1rem",
-    padding: "1.25rem",
-    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  };
-
   const modalOverlayStyle: React.CSSProperties = {
     position: "fixed",
     inset: 0,
@@ -449,31 +500,32 @@ export default function AdminPanel() {
           </div>
         )}
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "5rem",
-        }}>
-          {projects.map((project) => (
-            <div
-              key={project.slug}
-              style={cardStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.boxShadow = "0 12px 32px rgba(139,92,246,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              <ProjectCard project={project} mode="edit" onEdit={openEdit} onDelete={handleDelete} />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={() => { draggingRef.current = true; }}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => { draggingRef.current = false; }}
+        >
+          <SortableContext items={projects.map((p) => p.slug)} strategy={rectSortingStrategy}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: "1.5rem",
+              marginBottom: "5rem",
+            }}>
+              {projects.map((project) => (
+                <SortableProjectItem
+                  key={project.slug}
+                  project={project}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                  onToggleVisibility={handleToggleVisibility}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
 
         <button
           type="button"

@@ -158,11 +158,11 @@ Se monta en la página Astro con `client:load` (necesita JS en el navegador desd
 ## FASE 7 — Panel admin oculto
 
 ### 7.1 Ruta no enlazada
-Crea la página en una ruta que no aparezca en ningún menú ni sitemap, ej: `src/pages/panel-xk492j/index.astro` (usa un slug propio, no “admin”/“login” obvios). Nadie la encuentra por navegación normal; solo quien tenga el link directo.
+Crea la página en una ruta que no aparezca en ningún menú ni sitemap, ej: `src/pages/admin/index.astro` (usa un slug propio, no “login” obvio). Nadie la encuentra por navegación normal; solo quien tenga el link directo.
 
 ```astro
 ---
-// src/pages/panel-xk492j/index.astro
+// src/pages/admin/index.astro
 import AdminPanel from '../../components/AdminPanel.tsx';
 import Layout from '../../layouts/Layout.astro';
 ---
@@ -243,7 +243,7 @@ En Custom domains dentro del proyecto de Cloudflare Pages, puedes conectar un do
 
 ## FASE 9 — Flujo de trabajo diario
 
-- **Agregar/editar/quitar proyectos**: entras a `portafolio.pages.dev/panel-xk492j`, inicias sesión, usas los botones. Cambia en Firestore al instante — **no hace falta redeploy**, se ve en vivo porque el front lee Firestore en el navegador.
+  - **Agregar/editar/quitar proyectos**: entras a `portafolio.pages.dev/admin`, inicias sesión, usas los botones. Cambia en Firestore al instante — **no hace falta redeploy**, se ve en vivo porque el front lee Firestore en el navegador.
 - **Cambios de diseño/estructura**: vuelves a VS Code + Kilo Code, pides el ajuste, `git push` → Cloudflare Pages detecta el cambio y hace build/deploy automático en ~1 minuto.
 
 ---

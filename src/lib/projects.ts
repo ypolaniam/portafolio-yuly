@@ -34,6 +34,14 @@ export async function removeProject(slug: string): Promise<void> {
   await setDoc(getSettingsRef(), { projects }, { merge: true });
 }
 
+export async function setProjectVisibility(slug: string, visible: boolean): Promise<void> {
+  const projects = await getProjectsOnce();
+  const next = projects.map((p) =>
+    p.slug === slug ? { ...p, visible } : p
+  );
+  await setDoc(getSettingsRef(), { projects: next }, { merge: true });
+}
+
 export async function migrateProjects(): Promise<number> {
   const projects = await getProjectsOnce();
   const existing = new Set(projects.map((p) => p.slug));
@@ -50,4 +58,12 @@ export async function migrateProjects(): Promise<number> {
 
   await setDoc(getSettingsRef(), { projects }, { merge: true });
   return added;
+}
+
+export async function reorderProjects(orderedProjects: Project[]): Promise<void> {
+  const ordered = orderedProjects.map((p) => ({
+    ...p,
+    createdAt: p.createdAt ?? Date.now(),
+  }));
+  await setDoc(getSettingsRef(), { projects: ordered }, { merge: true });
 }
