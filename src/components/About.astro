@@ -131,9 +131,10 @@ import MotionWrapper from "./MotionWrapper.astro";
     align-items: start;
   }
 
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .about-hero {
       grid-template-columns: 1fr 1.2fr;
+      gap: 3.5rem;
     }
   }
 
@@ -143,10 +144,17 @@ import MotionWrapper from "./MotionWrapper.astro";
 
   .about-hero .about-image img {
     width: 100%;
-    aspect-ratio: 3/4;
+    aspect-ratio: 4/5;
     object-fit: cover;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
+    max-height: 55vh;
+  }
+
+  @media (max-width: 768px) {
+    .about-hero {
+      gap: 2.5rem;
+    }
   }
 
   .about-hero .about-image::before {
@@ -157,6 +165,12 @@ import MotionWrapper from "./MotionWrapper.astro";
     border-radius: var(--radius-xl);
     opacity: 0.28;
     pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    .about-hero .about-image::before {
+      inset: -0.75rem;
+    }
   }
 
   .about-intro {
@@ -187,9 +201,10 @@ import MotionWrapper from "./MotionWrapper.astro";
     gap: 4rem;
   }
 
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .about-details {
       grid-template-columns: 1fr 1fr;
+      gap: 3rem;
     }
   }
 
