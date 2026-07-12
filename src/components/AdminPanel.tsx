@@ -70,6 +70,7 @@ export default function AdminPanel() {
   const [form, setForm] = useState<Project>(blankProject());
 
   useEffect(() => {
+    if (!auth) return;
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });
@@ -194,7 +195,12 @@ export default function AdminPanel() {
 
   const handleDelete = async (slug: string) => {
     if (!confirm("¿Eliminar este proyecto?")) return;
-    await removeProject(slug);
+    try {
+      await removeProject(slug);
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar el proyecto");
+    }
   };
 
   const handleToggleVisibility = async (slug: string, visible: boolean) => {

@@ -4,7 +4,7 @@ export interface Project {
   category: string;
   image: string;
   description: string;
-  metrics?: string;
+  metrics?: string | string[];
   tools?: string[];
   year: string;
   size?: "large" | "medium" | "small";

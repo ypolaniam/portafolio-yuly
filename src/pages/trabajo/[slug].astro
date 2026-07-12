@@ -1,14 +1,24 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ProjectDetailClient from "../../components/ProjectDetailClient.tsx";
+import { getProjectsOnce } from "../../lib/projects";
 import { initialProjects } from "../../data/projects";
 import type { Project } from "../../types/project";
 
 export async function getStaticPaths() {
-  return initialProjects.map((project) => ({
-    params: { slug: project.slug },
-    props: { initialProject: project },
-  }));
+  try {
+    const projects = await getProjectsOnce();
+    return projects.map((project) => ({
+      params: { slug: project.slug },
+      props: { initialProject: project },
+    }));
+  } catch {
+    console.warn("[trabajo] No se pudo leer Firebase en build, usando proyectos iniciales.");
+    return initialProjects.map((project) => ({
+      params: { slug: project.slug },
+      props: { initialProject: project },
+    }));
+  }
 }
 
 const { slug } = Astro.params;
@@ -20,5 +30,5 @@ const { initialProject } = Astro.props;
   description={initialProject?.description || "Detalle del proyecto"}
   ogImage={initialProject?.image || "https://placehold.co/1200x630/1E1B4A/FFFFFF?text=Proyecto"}
 >
-  <ProjectDetailClient client:only="react" initialSlug={slug} initialProject={initialProject} />
+  <ProjectDetailClient client:load initialSlug={slug} initialProject={initialProject} />
 </BaseLayout>

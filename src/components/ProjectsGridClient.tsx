@@ -5,6 +5,12 @@ import { getOptimizedImageUrl } from "../lib/cloudinary";
 import type { Project } from "../types/project";
 import { initialProjects } from "../data/projects";
 
+const FALLBACK_IMAGE = "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Proyecto";
+
+function handleImgError(e: React.SyntheticEvent<HTMLImageElement>) {
+  (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
+}
+
 export default function ProjectsGridClient() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState("all");
@@ -88,7 +94,7 @@ export default function ProjectsGridClient() {
                 <article className="project-card" data-category={first.category}>
                   <a href={`/trabajo/${first.slug}/`} className="project-card-link" aria-label={`Ver detalle: ${first.title}`}>
                     <div className="project-card-image">
-                      <img src={getOptimizedImageUrl(first.image)} alt={first.title} loading="lazy" />
+                      <img src={getOptimizedImageUrl(first.image)} alt={first.title} loading="lazy" onError={handleImgError} />
                       <div className="project-card-overlay">
                         <span className="overlay-title">Ver proyecto →</span>
                         {first.metrics && <span className="overlay-metric">{typeof first.metrics === 'string' ? first.metrics : first.metrics[0]}</span>}
@@ -110,7 +116,7 @@ export default function ProjectsGridClient() {
                 <article className="project-card" data-category={second.category}>
                   <a href={`/trabajo/${second.slug}/`} className="project-card-link" aria-label={`Ver detalle: ${second.title}`}>
                     <div className="project-card-image">
-                      <img src={getOptimizedImageUrl(second.image)} alt={second.title} loading="lazy" />
+                      <img src={getOptimizedImageUrl(second.image)} alt={second.title} loading="lazy" onError={handleImgError} />
                       <div className="project-card-overlay">
                         <span className="overlay-title">Ver proyecto →</span>
                         {second.metrics && <span className="overlay-metric">{typeof second.metrics === 'string' ? second.metrics : second.metrics[0]}</span>}

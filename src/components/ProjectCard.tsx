@@ -61,7 +61,7 @@ export default function ProjectCard({ project, mode = "display", onEdit, onDelet
         {project.metrics ? (
           <div className="project-metrics">
             {Array.isArray(project.metrics) ? (
-              project.metrics.map((m) => <span key={m} className="metric">{m}</span>)
+              project.metrics.map((m, idx) => <span key={`${m}-${idx}`} className="metric">{m}</span>)
             ) : (
               <span className="metric">{project.metrics}</span>
             )}
