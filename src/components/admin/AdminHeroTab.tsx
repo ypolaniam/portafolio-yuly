@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Hero } from "../../types/hero";
 import { setHero } from "../../lib/hero";
 
@@ -24,8 +24,13 @@ interface AdminHeroTabProps {
 export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onMigrateHero }: AdminHeroTabProps) {
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string>("");
 
   const [form, setForm] = useState<Hero>({ ...hero });
+
+  useEffect(() => {
+    setForm({ ...hero });
+  }, [hero]);
 
   const update = (patch: Partial<Hero>) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -63,6 +68,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
       await setHero(payload);
       onHeroChange(payload);
       setPreviewUrl(null);
+      setFileName("");
     } catch (err) {
       console.error(err);
       alert("Error guardando datos de Inicio");
@@ -75,8 +81,10 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     const file = e.target.files?.[0];
     if (file) {
       setPreviewUrl(URL.createObjectURL(file));
+      setFileName(file.name);
     } else {
       setPreviewUrl(null);
+      setFileName("");
     }
   };
 
@@ -247,14 +255,31 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            style={{ fontSize: "0.875rem", color: COLORS.textMuted, marginBottom: "0.5rem" }}
+            style={{ display: "none" }}
           />
+          <label
+            htmlFor="hero-photo"
+            style={{
+              ...buttonSecondary,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+          </label>
           <input
             value={form.photo}
-            onChange={(e) => { update({ photo: e.target.value }); setPreviewUrl(null); }}
+            onChange={(e) => { update({ photo: e.target.value }); setPreviewUrl(null); setFileName(""); }}
             placeholder="O pegá una URL directamente"
             required
-            style={inputStyle}
+            style={{ ...inputStyle, marginTop: "0.75rem" }}
           />
           {(previewUrl || form.photo) && (
             <div style={{ marginTop: "1rem" }}>

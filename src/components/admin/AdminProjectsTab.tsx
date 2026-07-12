@@ -16,8 +16,8 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { upsertProject, removeProject, reorderProjects, setProjectVisibility, getProjectsOnce } from "../../lib/projects";
-import { getOptimizedImageUrl } from "../../lib/cloudinary";
 import SortableProjectItem from "../SortableProjectItem";
+import ProjectLivePreview from "../ProjectLivePreview";
 
 const COLORS = {
   bg: "#0A0A0F",
@@ -50,15 +50,21 @@ const blankProject = (): Project => ({
   year: new Date().getFullYear().toString(),
   size: "medium",
   visible: true,
+  gallery: [],
 });
 
 export default function AdminProjectsTab({ projects, onProjectsChange, migrationLoading, onMigrateProjects }: AdminProjectsTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
   const [form, setForm] = useState<Project>(blankProject());
   const draggingRef = useRef(false);
+
+  const existingCategories = Array.from(
+    new Set(projects.map((p) => p.category).filter((c): c is string => Boolean(c)))
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -68,14 +74,14 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
 
   const openEdit = (project: Project) => {
     setEditing(project);
-    setForm({ ...project });
+    setForm({ ...project, gallery: project.gallery ?? [] });
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditing(null);
-    setPreviewUrl(null);
+    setFileName("");
   };
 
   const uploadToCloudinary = async (file: File): Promise<string> => {
@@ -134,11 +140,36 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setFileName(file.name);
     } else {
-      setPreviewUrl(null);
+      setFileName("");
     }
+  };
+
+  const handleGalleryFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setUploadingGallery(true);
+    try {
+      const uploaded = await Promise.all(files.map((f) => uploadToCloudinary(f)));
+      setForm((prev) => ({ ...prev, gallery: [...(prev.gallery ?? []), ...uploaded] }));
+    } catch (err) {
+      console.error(err);
+      alert("Error subiendo imágenes de la galería");
+    } finally {
+      setUploadingGallery(false);
+      e.target.value = "";
+    }
+  };
+
+  const addGalleryUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setForm((prev) => ({ ...prev, gallery: [...(prev.gallery ?? []), trimmed] }));
+  };
+
+  const removeGalleryImage = (idx: number) => {
+    setForm((prev) => ({ ...prev, gallery: (prev.gallery ?? []).filter((_, i) => i !== idx) }));
   };
 
   const handleDelete = async (slug: string) => {
@@ -186,44 +217,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const formStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-    width: "100%",
-    maxWidth: "400px",
-    padding: "2.5rem",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "1.25rem",
-    background: "rgba(17, 16, 29, 0.7)",
-    backdropFilter: "blur(20px)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-  };
-
-  const inputStyle: React.CSSProperties = {
-    padding: "0.875rem 1rem",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "0.75rem",
-    background: "rgba(10,10,15,0.6)",
-    color: COLORS.text,
-    fontSize: "0.9375rem",
-    outline: "none",
-    transition: "all 0.2s ease",
-  };
-
-  const buttonPrimary: React.CSSProperties = {
-    padding: "0.875rem",
-    borderRadius: "0.75rem",
-    border: "none",
-    background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
-    color: COLORS.white,
-    fontWeight: 600,
-    fontSize: "0.9375rem",
-    cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
-    transition: "all 0.2s ease",
-  };
 
   const buttonSecondary: React.CSSProperties = {
     padding: "0.875rem",
@@ -342,191 +335,220 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       </button>
 
       {isModalOpen && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.7)",
-          backdropFilter: "blur(8px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "1rem",
-          zIndex: 100,
-        }} onClick={closeModal}>
-          <form style={{
-            ...{ background: `linear-gradient(180deg, ${COLORS.surface} 0%, ${COLORS.bg} 100%)`, border: "1px solid rgba(255,255,255,0.1)", borderRadius: "1.25rem", padding: "2.5rem", width: "100%", maxWidth: "960px", maxHeight: "90vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem", color: COLORS.text, boxShadow: "0 20px 60px rgba(0,0,0,0.5)" },
-            flexDirection: "row",
-            gap: "2rem",
-            overflow: "hidden",
-          }} onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-            <div style={{ flex: "1 1 55%", display: "flex", flexDirection: "column", gap: "1.25rem", overflowY: "auto" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: COLORS.white, letterSpacing: "-0.02em" }}>
-                  {editing ? "Editar proyecto" : "Nuevo proyecto"}
-                </h2>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: COLORS.textMuted,
-                    fontSize: "1.5rem",
-                    cursor: "pointer",
-                    width: "36px",
-                    height: "36px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "0.5rem",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.white; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textMuted; e.currentTarget.style.background = "transparent"; }}
-                >
-                  ×
-                </button>
+        <div className="admin-editor-overlay" onClick={closeModal}>
+          <form className="admin-editor" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-editor-form">
+              <div className="admin-editor-header">
+                <div>
+                  <h2>{editing ? "Editar proyecto" : "Nuevo proyecto"}</h2>
+                  <p>
+                    {editing ? "Modificá los datos del proyecto" : "Completá los datos para crear un nuevo proyecto"}
+                  </p>
+                </div>
+                <div className="admin-editor-header-actions">
+                  <button type="button" onClick={closeModal} className="admin-editor-cancel">Cancelar</button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="admin-editor-save"
+                  >
+                    {loading ? "Guardando..." : editing ? "Guardar cambios" : "Crear proyecto"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="admin-editor-close"
+                    aria-label="Cerrar"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
-              <p style={{ margin: "0 0 0.5rem", fontSize: "0.875rem", color: COLORS.textMuted }}>
-                {editing ? "Modificá los datos del proyecto" : "Completá los datos para crear un nuevo proyecto"}
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <input
-                  placeholder="Título *"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  required
-                  style={inputStyle}
-                />
-                <input
-                  placeholder="Slug (URL) *"
-                  value={form.slug}
-                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                  required
-                  style={inputStyle}
-                />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+
+              <div className="admin-editor-fields">
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-title">Título *</label>
                   <input
-                    placeholder="Categoría *"
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    id="project-title"
+                    placeholder="Ej: Marca personal Pola Mola"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
                     required
-                    style={inputStyle}
-                  />
-                  <input
-                    placeholder="Año *"
-                    value={form.year}
-                    onChange={(e) => setForm({ ...form, year: e.target.value })}
-                    required
-                    style={inputStyle}
+                    className="admin-field"
                   />
                 </div>
-                <textarea
-                  placeholder="Descripción *"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  required
-                  style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
-                />
-                <input
-                  placeholder="Métricas (opcional)"
-                  value={form.metrics || ""}
-                  onChange={(e) => setForm({ ...form, metrics: e.target.value })}
-                  style={inputStyle}
-                />
-                <input
-                  placeholder="Tamaño (large / medium / small)"
-                  value={form.size || "medium"}
-                  onChange={(e) => setForm({ ...form, size: e.target.value as Project["size"] })}
-                  style={inputStyle}
-                />
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <label style={{ fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight }}>Imagen del proyecto</label>
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-slug">URL del proyecto *</label>
+                  <input
+                    id="project-slug"
+                    placeholder="Ej: marca-personal-pola-mola"
+                    value={form.slug}
+                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    required
+                    className="admin-field"
+                  />
+                  <p className="admin-field-help">Se genera solo si lo dejás vacío. Usá guiones y minúsculas.</p>
+                </div>
+                <div className="admin-field-row">
+                  <div className="admin-field-col">
+                    <label className="admin-field-label" htmlFor="project-category">Categoría *</label>
+                    <input
+                      id="project-category"
+                      list="project-category-list"
+                      placeholder="Ej: Branding"
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      required
+                      className="admin-field"
+                    />
+                  </div>
+                  <div className="admin-field-col">
+                    <label className="admin-field-label" htmlFor="project-year">Año *</label>
+                    <input
+                      id="project-year"
+                      placeholder="Ej: 2025"
+                      value={form.year}
+                      onChange={(e) => setForm({ ...form, year: e.target.value })}
+                      required
+                      className="admin-field"
+                    />
+                  </div>
+                </div>
+                <p className="admin-field-help">
+                  Se usa como filtro en el sitio público. Elegí una categoría existente o escribí una nueva.
+                </p>
+                <datalist id="project-category-list">
+                  {existingCategories.map((cat) => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-description">Descripción *</label>
+                  <textarea
+                    id="project-description"
+                    placeholder="Contá de qué se trata el proyecto..."
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    required
+                    className="admin-field"
+                    style={{ minHeight: "120px", resize: "vertical" }}
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-metrics">Métricas (opcional)</label>
+                  <input
+                    id="project-metrics"
+                    placeholder="Ej: +40% conversión, 12k alcance"
+                    value={Array.isArray(form.metrics) ? form.metrics.join(", ") : form.metrics || ""}
+                    onChange={(e) => setForm({ ...form, metrics: e.target.value })}
+                    className="admin-field"
+                  />
+                  <p className="admin-field-help">Separalas con coma. Cada una se muestra como una tarjeta de resultado.</p>
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-size">Tamaño en la portada</label>
+                  <select
+                    id="project-size"
+                    value={form.size || "medium"}
+                    onChange={(e) => setForm({ ...form, size: e.target.value as Project["size"] })}
+                    className="admin-field admin-select"
+                  >
+                    <option value="large">Destacado (grande)</option>
+                    <option value="medium">Mediano</option>
+                    <option value="small">Pequeño</option>
+                  </select>
+                  <p className="admin-field-help">Define cuánto espacio ocupa la tarjeta en la portada pública.</p>
+                </div>
+
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Imagen principal del proyecto</label>
                   <input
                     id="project-image"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    style={{ fontSize: "0.875rem", color: COLORS.textMuted }}
+                    style={{ display: "none" }}
                   />
-                  <input
-                    placeholder="O pegá una URL directamente"
-                    value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    style={inputStyle}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-                <button type="button" onClick={closeModal} style={buttonSecondary}>Cancelar</button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    ...buttonPrimary,
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                >
-                  {loading ? "Guardando..." : editing ? "Guardar cambios" : "Crear proyecto"}
-                </button>
-              </div>
-            </div>
-
-            <div style={{
-              flex: "0 0 45%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(0,0,0,0.2)",
-              borderRadius: "1rem",
-              padding: "1.5rem",
-              border: "1px solid rgba(255,255,255,0.05)",
-              minHeight: "300px",
-            }}>
-              {(previewUrl || form.image) ? (
-                <>
-                   <img
-                     src={previewUrl || getOptimizedImageUrl(form.image)}
-                     alt="Preview"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "400px",
-                      objectFit: "cover",
-                      borderRadius: "0.75rem",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                    }}
-                  />
-                  <p style={{ marginTop: "1rem", fontSize: "0.8125rem", color: COLORS.textMuted, textAlign: "center" }}>
-                    {previewUrl ? "Vista previa de la imagen seleccionada" : "Imagen actual del proyecto"}
-                  </p>
-                </>
-              ) : (
-                <div style={{
-                  width: "100%",
-                  aspectRatio: "16 / 10",
-                  borderRadius: "0.75rem",
-                  border: "1px dashed rgba(255,255,255,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: COLORS.textMuted,
-                  fontSize: "0.875rem",
-                  textAlign: "center",
-                  padding: "1rem",
-                }}>
-                  <div>
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 0.75rem", display: "block", opacity: 0.6 }}>
+                  <label htmlFor="project-image" className="admin-gallery-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
-                    La imagen se mostrará aquí
-                  </div>
+                    {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+                  </label>
+                  <input
+                    placeholder="O pegá una URL directamente"
+                    value={form.image}
+                    onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); }}
+                    className="admin-field"
+                  />
                 </div>
-              )}
+
+                <div className="admin-field-group">
+                  <div className="admin-gallery-head">
+                    <label className="admin-field-label">Galería de imágenes</label>
+                    <span className="admin-gallery-count">{(form.gallery ?? []).length} imágenes</span>
+                  </div>
+                  {(form.gallery ?? []).length > 0 && (
+                    <div className="admin-gallery-grid">
+                      {(form.gallery ?? []).map((src, i) => (
+                        <div key={`${src}-${i}`} className="admin-gallery-item">
+                          <img src={src} alt={`Imagen ${i + 1}`} />
+                          <button
+                            type="button"
+                            className="admin-gallery-remove"
+                            aria-label="Quitar imagen"
+                            onClick={() => removeGalleryImage(i)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="admin-gallery-actions">
+                    <label htmlFor="gallery-images" className="admin-gallery-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      Subir imágenes
+                    </label>
+                    <input
+                      id="gallery-images"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleGalleryFiles}
+                      style={{ display: "none" }}
+                    />
+                    <input
+                      className="admin-gallery-url"
+                      placeholder="O pegá una URL y Enter"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = (e.target as HTMLInputElement).value;
+                          addGalleryUrl(val);
+                          (e.target as HTMLInputElement).value = "";
+                        }
+                      }}
+                    />
+                  </div>
+                  {uploadingGallery && <p className="admin-gallery-hint">Subiendo imágenes...</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-editor-preview">
+              <div className="admin-editor-preview-bar">
+                <span>Vista previa (público)</span>
+              </div>
+              <div className="admin-editor-preview-scroll">
+                <ProjectLivePreview project={form} />
+              </div>
             </div>
           </form>
         </div>

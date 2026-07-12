@@ -23,6 +23,24 @@ import { migrateHero } from "../lib/hero";
 import { migrateAbout } from "../lib/about";
 import { migrateTimeline } from "../lib/timeline";
 
+const DEFAULT_HERO: Hero = {
+  overline: "",
+  title: [""],
+  subtitle: "",
+  ctaPrimary: { label: "", href: "" },
+  ctaSecondary: { label: "", href: "" },
+  photo: "",
+  stats: [],
+};
+
+const DEFAULT_ABOUT: About = {
+  title: "",
+  intro: [""],
+  values: [],
+  skills: [],
+  education: [],
+};
+
 const COLORS = {
   bg: "#0A0A0F",
   surface: "#11101D",
@@ -40,16 +58,16 @@ type Tab = "hero" | "about" | "experience" | "projects";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "hero", label: "Inicio" },
+  { id: "projects", label: "Proyectos" },
   { id: "about", label: "Sobre mí" },
   { id: "experience", label: "Experiencia" },
-  { id: "projects", label: "Proyectos" },
 ];
 
 export default function AdminPanel() {
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("projects");
+  const [activeTab, setActiveTab] = useState<Tab>("hero");
 
   const [hero, setHero] = useState<Hero | null>(null);
   const [about, setAbout] = useState<About | null>(null);
@@ -294,11 +312,15 @@ export default function AdminPanel() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      position: "fixed",
+      top: "var(--header-height)",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      overflowY: "auto",
       background: `${COLORS.bg}`,
       color: COLORS.text,
-      position: "relative",
-      overflow: "hidden",
+      zIndex: 1,
     }}>
       <div style={{
         position: "absolute",
@@ -369,15 +391,7 @@ export default function AdminPanel() {
 
         {activeTab === "hero" && (
           <AdminHeroTab
-            hero={hero ?? {
-              overline: "",
-              title: [""],
-              subtitle: "",
-              ctaPrimary: { label: "", href: "" },
-              ctaSecondary: { label: "", href: "" },
-              photo: "",
-              stats: [],
-            }}
+            hero={hero ?? DEFAULT_HERO}
             onHeroChange={setHero}
             migrationLoading={migrationLoading}
             onMigrateHero={() => runMigration(migrateHero, "datos de Inicio")}
@@ -386,13 +400,7 @@ export default function AdminPanel() {
 
         {activeTab === "about" && (
           <AdminAboutTab
-            about={about ?? {
-              title: "",
-              intro: [""],
-              values: [],
-              skills: [],
-              education: [],
-            }}
+            about={about ?? DEFAULT_ABOUT}
             onAboutChange={setAbout}
             migrationLoading={migrationLoading}
             onMigrateAbout={() => runMigration(migrateAbout, "datos de Sobre mí")}

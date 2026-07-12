@@ -10,6 +10,8 @@ export interface Project {
   size?: "large" | "medium" | "small";
   // Visibility toggle. `undefined` / `true` => visible; `false` => hidden from the public site.
   visible?: boolean;
+  // Extra images shown in a gallery on the public detail page.
+  gallery?: string[];
 }
 
 export type CardMode = "display" | "edit";

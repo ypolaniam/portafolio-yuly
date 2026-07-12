@@ -63,6 +63,16 @@ export default function ProjectsGridClient() {
     });
   }, [filter]);
 
+  const rowFlex = (first?: Project, second?: Project, rowIndex = 0): [number, number] => {
+    const fLarge = first?.size === "large";
+    const sLarge = second?.size === "large";
+    const fSmall = first?.size === "small";
+    const sSmall = second?.size === "small";
+    if (fLarge || sLarge) return fLarge ? [7, 3] : [3, 7];
+    if (fSmall || sSmall) return fSmall ? [3, 7] : [7, 3];
+    return rowIndex % 2 === 0 ? [7, 3] : [3, 7];
+  };
+
   return (
     <section id="trabajo" className="work" aria-labelledby="trabajo-title">
       <div className="work-header">
@@ -86,12 +96,12 @@ export default function ProjectsGridClient() {
         {Array.from({ length: Math.ceil(visible.length / 2) }).map((_, rowIndex) => {
           const first = visible[rowIndex * 2];
           const second = visible[rowIndex * 2 + 1];
-          const isWideLeft = rowIndex % 2 === 0;
+          const [firstFlex, secondFlex] = rowFlex(first, second, rowIndex);
 
           return (
-            <div key={rowIndex} className={`projects-row ${isWideLeft ? 'wide-left' : 'narrow-left'}`}>
+            <div key={rowIndex} className="projects-row">
               {first && (
-                <article className="project-card" data-category={first.category}>
+                <article className="project-card" data-category={first.category} style={{ flex: `${firstFlex} 1 0%` }}>
                   <a href={`/trabajo/${first.slug}/`} className="project-card-link" aria-label={`Ver detalle: ${first.title}`}>
                     <div className="project-card-image">
                       <img src={getOptimizedImageUrl(first.image)} alt={first.title} loading="lazy" onError={handleImgError} />
@@ -113,7 +123,7 @@ export default function ProjectsGridClient() {
                 </article>
               )}
               {second && (
-                <article className="project-card" data-category={second.category}>
+                <article className="project-card" data-category={second.category} style={{ flex: `${secondFlex} 1 0%` }}>
                   <a href={`/trabajo/${second.slug}/`} className="project-card-link" aria-label={`Ver detalle: ${second.title}`}>
                     <div className="project-card-image">
                       <img src={getOptimizedImageUrl(second.image)} alt={second.title} loading="lazy" onError={handleImgError} />

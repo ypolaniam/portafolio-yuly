@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { About } from "../../types/about";
 import { setAbout } from "../../lib/about";
 
@@ -24,6 +24,10 @@ interface AdminAboutTabProps {
 export default function AdminAboutTab({ about, onAboutChange, migrationLoading, onMigrateAbout }: AdminAboutTabProps) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<About>({ ...about });
+
+  useEffect(() => {
+    setForm({ ...about });
+  }, [about]);
 
   const update = (patch: Partial<About>) => setForm((prev) => ({ ...prev, ...patch }));
 

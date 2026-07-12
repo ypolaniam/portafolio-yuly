@@ -4,10 +4,12 @@ import { db } from "../lib/firebase";
 import { getOptimizedImageUrl } from "../lib/cloudinary";
 import type { Project } from "../types/project";
 import ProjectCarousel from "./ProjectCarousel.tsx";
+import Lightbox from "./Lightbox.tsx";
 
 export default function ProjectDetailClient({ initialSlug, initialProject }: { initialSlug: string | undefined; initialProject?: Project }) {
   const [project, setProject] = useState<Project | null>(initialProject ?? null);
   const [loading, setLoading] = useState(!initialProject);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!initialSlug) {
@@ -132,7 +134,35 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
         </div>
       </div>
 
+      {project.gallery && project.gallery.length > 0 && (
+        <div className="reveal project-gallery-section">
+          <h2 className="gallery-section-title">Galería</h2>
+          <div className="gallery-grid">
+            {project.gallery.map((src, i) => (
+              <button
+                key={`${src}-${i}`}
+                type="button"
+                className="gallery-thumb"
+                aria-label={`Ver imagen ${i + 1} en grande`}
+                onClick={() => setLightboxIndex(i)}
+              >
+                <img src={getOptimizedImageUrl(src, 400)} alt={`Imagen ${i + 1} del proyecto`} loading="lazy" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <ProjectCarousel currentSlug={project.slug} />
+
+      {lightboxIndex !== null && project.gallery && (
+        <Lightbox
+          images={project.gallery}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={setLightboxIndex}
+        />
+      )}
     </article>
   );
 }
