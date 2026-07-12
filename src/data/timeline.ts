@@ -1,16 +1,11 @@
-export interface TimelineItem {
-  id: string;
-  type: "experience";
-  title?: string;
-  institution?: string;
-  location?: string;
-  period?: string;
-  description?: string;
-  tags?: string[];
-  href?: string;
-}
+import type { TimelineItem } from "../types/timeline";
 
-export const timeline: TimelineItem[] = [
+export const timelineCategories = [
+  { id: "all", label: "Todo" },
+  { id: "experience", label: "Experiencia" },
+];
+
+export const initialTimeline: TimelineItem[] = [
   {
     id: "freelance-actual",
     type: "experience",
@@ -62,9 +57,4 @@ export const timeline: TimelineItem[] = [
     description:
       "Diseño multimedia para campañas publicitarias siguiendo los criterios visuales de la identidad de marca. Maquetas y modelos.",
   },
-];
-
-export const timelineCategories = [
-  { id: "all", label: "Todo" },
-  { id: "experience", label: "Experiencia" },
 ];

@@ -1,0 +1,346 @@
+import { useState } from "react";
+import type { Hero } from "../../types/hero";
+import { setHero } from "../../lib/hero";
+
+const COLORS = {
+  bg: "#0A0A0F",
+  surface: "#11101D",
+  border: "#1E1D3A",
+  text: "#F8FAFC",
+  textMuted: "#94A3B8",
+  textLight: "#CBD5E1",
+  primary: "#8B5CF6",
+  primaryDark: "#7C3AED",
+  white: "#FFFFFF",
+};
+
+interface AdminHeroTabProps {
+  hero: Hero;
+  onHeroChange: (hero: Hero) => void;
+  migrationLoading: boolean;
+  onMigrateHero: () => Promise<void>;
+}
+
+export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onMigrateHero }: AdminHeroTabProps) {
+  const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const [form, setForm] = useState<Hero>({ ...hero });
+
+  const update = (patch: Partial<Hero>) => setForm((prev) => ({ ...prev, ...patch }));
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const preset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !preset) {
+      alert("Falta configurar Cloudinary.");
+      throw new Error("Cloudinary no configurado");
+    }
+
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", preset);
+    const res = await fetch(url, { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Error subiendo imagen");
+    const data = await res.json();
+    return data.secure_url as string;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      let photo = form.photo;
+
+      const fileInput = document.getElementById("hero-photo") as HTMLInputElement | null;
+      if (fileInput?.files?.[0]) {
+        photo = await uploadToCloudinary(fileInput.files[0]);
+      }
+
+      const payload = { ...form, photo };
+      await setHero(payload);
+      onHeroChange(payload);
+      setPreviewUrl(null);
+    } catch (err) {
+      console.error(err);
+      alert("Error guardando datos de Inicio");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const titleLines = form.title.join("\n").split("\n");
+
+  const inputStyle: React.CSSProperties = {
+    padding: "0.875rem 1rem",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "0.75rem",
+    background: "rgba(10,10,15,0.6)",
+    color: COLORS.text,
+    fontSize: "0.9375rem",
+    outline: "none",
+    transition: "all 0.2s ease",
+    width: "100%",
+    boxSizing: "border-box",
+  };
+
+  const buttonPrimary: React.CSSProperties = {
+    padding: "0.875rem",
+    borderRadius: "0.75rem",
+    border: "none",
+    background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
+    color: COLORS.white,
+    fontWeight: 600,
+    fontSize: "0.9375rem",
+    cursor: "pointer",
+    boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
+    transition: "all 0.2s ease",
+  };
+
+  const buttonSecondary: React.CSSProperties = {
+    padding: "0.875rem",
+    borderRadius: "0.75rem",
+    border: `1px solid ${COLORS.border}`,
+    background: "transparent",
+    color: COLORS.text,
+    fontWeight: 500,
+    fontSize: "0.9375rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  };
+
+  return (
+    <div>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "2rem",
+      }}>
+        <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: COLORS.white }}>
+          Inicio (Hero)
+        </h2>
+        <button
+          type="button"
+          onClick={onMigrateHero}
+          disabled={migrationLoading}
+          style={{
+            ...buttonSecondary,
+            opacity: migrationLoading ? 0.6 : 1,
+          }}
+          onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
+        >
+          {migrationLoading ? "Migrando..." : "Cargar hero inicial"}
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.5rem",
+        maxWidth: "800px",
+      }}>
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Overline
+          </label>
+          <input
+            value={form.overline}
+            onChange={(e) => update({ overline: e.target.value })}
+            required
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Título (una línea por entrada)
+          </label>
+          <textarea
+            value={titleLines.join("\n")}
+            onChange={(e) => update({ title: e.target.value.split("\n") })}
+            required
+            style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Subtítulo
+          </label>
+          <textarea
+            value={form.subtitle}
+            onChange={(e) => update({ subtitle: e.target.value })}
+            required
+            style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+          />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+              CTA Primaria - Label
+            </label>
+            <input
+              value={form.ctaPrimary.label}
+              onChange={(e) => update({ ctaPrimary: { ...form.ctaPrimary, label: e.target.value } })}
+              required
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+              CTA Primaria - URL
+            </label>
+            <input
+              value={form.ctaPrimary.href}
+              onChange={(e) => update({ ctaPrimary: { ...form.ctaPrimary, href: e.target.value } })}
+              required
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+              CTA Secundaria - Label
+            </label>
+            <input
+              value={form.ctaSecondary.label}
+              onChange={(e) => update({ ctaSecondary: { ...form.ctaSecondary, label: e.target.value } })}
+              required
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+              CTA Secundaria - URL
+            </label>
+            <input
+              value={form.ctaSecondary.href}
+              onChange={(e) => update({ ctaSecondary: { ...form.ctaSecondary, href: e.target.value } })}
+              required
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Foto principal
+          </label>
+          <input
+            id="hero-photo"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{ fontSize: "0.875rem", color: COLORS.textMuted, marginBottom: "0.5rem" }}
+          />
+          <input
+            value={form.photo}
+            onChange={(e) => { update({ photo: e.target.value }); setPreviewUrl(null); }}
+            placeholder="O pegá una URL directamente"
+            required
+            style={inputStyle}
+          />
+          {(previewUrl || form.photo) && (
+            <div style={{ marginTop: "1rem" }}>
+              <img
+                src={previewUrl || form.photo}
+                alt="Preview"
+                style={{
+                  width: "120px",
+                  height: "160px",
+                  objectFit: "cover",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Stats (label y valor)
+          </label>
+          {form.stats.map((stat, idx) => (
+            <div key={idx} style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem", alignItems: "center" }}>
+              <input
+                value={stat.label}
+                onChange={(e) => {
+                  const next = [...form.stats];
+                  next[idx] = { ...next[idx], label: e.target.value };
+                  update({ stats: next });
+                }}
+                placeholder="Label"
+                required
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <input
+                type="number"
+                value={stat.value}
+                onChange={(e) => {
+                  const next = [...form.stats];
+                  next[idx] = { ...next[idx], value: parseInt(e.target.value) || 0 };
+                  update({ stats: next });
+                }}
+                placeholder="Valor"
+                required
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const next = form.stats.filter((_, i) => i !== idx);
+                  update({ stats: next });
+                }}
+                style={{
+                  background: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  borderRadius: "0.5rem",
+                  color: "#EF4444",
+                  padding: "0.5rem 0.75rem",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => update({ stats: [...form.stats, { label: "", value: 0 }] })}
+            style={{
+              ...buttonSecondary,
+              padding: "0.5rem 1rem",
+              fontSize: "0.875rem",
+            }}
+          >
+            + Agregar stat
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="submit" disabled={loading} style={{ ...buttonPrimary, opacity: loading ? 0.7 : 1 }}>
+            {loading ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
