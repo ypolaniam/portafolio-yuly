@@ -108,8 +108,41 @@ export default function AdminPanel() {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
   };
+
+  const logoutHandlerRef = useRef(handleLogout);
+
+  useEffect(() => {
+    const slot = document.getElementById("admin-layout-header-slot");
+    if (!slot) return;
+
+    slot.innerHTML = "";
+
+    if (user) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "admin-layout-logout";
+      btn.title = "Cerrar sesión";
+      btn.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Cerrar sesión</span>';
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await logoutHandlerRef.current();
+      });
+      slot.appendChild(btn);
+    }
+
+    return () => {
+      slot.innerHTML = "";
+    };
+  }, [user]);
+
+  useEffect(() => {
+    logoutHandlerRef.current = handleLogout;
+  });
 
   const openCreate = () => {
     setEditing(null);
@@ -478,15 +511,6 @@ export default function AdminPanel() {
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
             >
               {migrationLoading ? "Migrando..." : "Cargar proyectos iniciales"}
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              style={buttonSecondary}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
-            >
-              Cerrar sesión
             </button>
           </div>
         </div>

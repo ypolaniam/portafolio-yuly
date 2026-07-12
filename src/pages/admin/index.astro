@@ -3,6 +3,6 @@ import Layout from "../../layouts/BaseLayout.astro";
 import AdminPanel from "../../components/AdminPanel.tsx";
 ---
 
-<Layout title="Panel admin" noindex>
-  <AdminPanel client:only="react" />
+<Layout title="Panel admin" noindex adminMode>
+  <AdminPanel client:load />
 </Layout>
