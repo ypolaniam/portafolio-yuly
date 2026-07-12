@@ -479,6 +479,18 @@ section:nth-of-type(even) {
   margin-bottom: 1rem;
 }
 
+.section-content,
+.projects-rows,
+.about-body,
+.contact-grid,
+.timeline {
+  margin-top: 2.5rem;
+}
+
+.category-filter {
+  margin-top: 2rem;
+}
+
 .about-inner,
 .contact-inner {
   width: 100%;
@@ -2196,8 +2208,6 @@ section:nth-of-type(even) {
 
 @media (max-width: 768px) {
   .timeline-items {
-    padding-left: 0;
-    padding-right: 0;
     gap: 2rem;
   }
 
