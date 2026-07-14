@@ -140,8 +140,25 @@ const {
     <BrandClient client:load />
 
     <footer class="site-footer">
-      <p>© {new Date().getFullYear()} <span data-brand-name-full>Yuly Polanía</span>. Todos los derechos reservados.</p>
+      <p>© {new Date().getFullYear()} <span data-brand-name-full>Yuly Polanía Molano</span>. Todos los derechos reservados.</p>
     </footer>
+
+    {/* Apply the cached brand name synchronously (before first paint) to avoid
+        a flash of the hardcoded default while Firestore loads. */}
+    <script is:inline>
+      (function () {
+        try {
+          var name = localStorage.getItem("yp_brand_name");
+          if (!name) return;
+          document.querySelectorAll("[data-brand-name]").forEach(function (el) {
+            el.textContent = name;
+          });
+          document.querySelectorAll("[data-brand-name-full]").forEach(function (el) {
+            el.textContent = name + " Molano";
+          });
+        } catch (e) {}
+      })();
+    </script>
 
     <script>
       import { animate, scroll } from "motion";

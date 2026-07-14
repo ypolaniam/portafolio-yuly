@@ -32,6 +32,8 @@ export interface Project {
   description: string;
   metrics?: string | string[];
   tools?: string[];
+  role?: string;
+  resultsDescription?: string;
   year: string;
   size?: "large" | "medium" | "small";
   // Visibility toggle. `undefined` / `true` => visible; `false` => hidden from the public site.

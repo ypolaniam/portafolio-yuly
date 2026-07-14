@@ -50,8 +50,10 @@ const blankProject = (): Project => ({
   category: "",
   image: "",
   description: "",
-  metrics: "",
+  metrics: [],
   tools: [],
+  role: "Diseñadora",
+  resultsDescription: "",
   year: new Date().getFullYear().toString(),
   size: "medium",
   visible: true,
@@ -84,6 +86,21 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
   // Cover type: "image" keeps the static `image`; "video" uses a YouTube URL in `form.video`.
   const [coverType, setCoverType] = useState<"image" | "video">("image");
   const [youTubeUrl, setYouTubeUrl] = useState<string>("");
+  // Local object URL used to preview a cover image before it's uploaded.
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string>("");
+
+  const setCoverPreview = (url: string) => {
+    setCoverPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
+  };
+
+  // Raw text for comma-separated fields. We keep the text un-normalized while
+  // the user types (so trailing commas and the caret are preserved) and only
+  // split into the array at submit time.
+  const [toolsText, setToolsText] = useState<string>("");
+  const [metricsText, setMetricsText] = useState<string>("");
 
   const existingCategories = Array.from(
     new Set(projects.map((p) => p.category).filter((c): c is string => Boolean(c)))
@@ -94,17 +111,23 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     setForm(blankProject());
     setCoverType("image");
     setYouTubeUrl("");
+    setToolsText("");
+    setMetricsText("");
     setShowConfirm(false);
+    setCoverPreview("");
     setIsModalOpen(true);
   };
 
   const openEdit = (project: Project) => {
     setEditing(project);
-    setForm({ ...project, gallery: project.gallery ?? [], sections: project.sections ?? [] });
+    setForm({ ...project, gallery: project.gallery ?? [], sections: project.sections ?? [], role: project.role ?? "Diseñadora", resultsDescription: project.resultsDescription ?? "" });
     const hasVideo = Boolean(project.video?.url);
     setCoverType(project.coverType ?? (hasVideo ? "video" : "image"));
     setYouTubeUrl(project.video?.source === "youtube" ? project.video.url : "");
+    setToolsText((project.tools ?? []).join(", "));
+    setMetricsText(Array.isArray(project.metrics) ? project.metrics.join(", ") : (project.metrics ?? ""));
     setShowConfirm(false);
+    setCoverPreview("");
     setIsModalOpen(true);
   };
 
@@ -114,6 +137,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     setEditing(null);
     setFileName("");
     setYouTubeUrl("");
+    setCoverPreview("");
   };
 
   const handleCoverTypeChange = (type: "image" | "video") => {
@@ -220,6 +244,12 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
         video,
         coverType,
         sections: cleanedSections,
+        tools: toolsText.split(",").map((s) => s.trim()).filter(Boolean),
+        metrics: metricsText.trim() ? metricsText.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        role: (form.role ?? "").trim() ? (form.role ?? "").trim() : undefined,
+        resultsDescription: stripHtml(form.resultsDescription ?? "").trim()
+          ? form.resultsDescription
+          : undefined,
         slug: form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
       };
 
@@ -241,9 +271,11 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     if (file) {
       console.log("[cover] imagen seleccionada:", { name: file.name, size: file.size, type: file.type });
       setFileName(file.name);
+      setCoverPreview(URL.createObjectURL(file));
     } else {
       console.log("[cover] ninguna imagen seleccionada");
       setFileName("");
+      setCoverPreview("");
     }
   };
 
@@ -452,16 +484,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     {editing ? "Modificá los datos del proyecto" : "Completá los datos para crear un nuevo proyecto"}
                   </p>
                 </div>
-                <div className="admin-editor-header-actions">
-                  <button type="button" onClick={closeModal} className="admin-editor-cancel">Cancelar</button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="admin-editor-save"
-                  >
-                    {loading ? "Guardando..." : editing ? "Guardar cambios" : "Crear proyecto"}
-                  </button>
-                </div>
               </div>
 
               <div className="admin-editor-fields">
@@ -472,17 +494,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     placeholder="Ej: Marca personal Pola Mola"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    required
-                    className="admin-field"
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-slug">URL del proyecto * <HelpTip text="Identificador en la dirección (ej: /trabajo/mi-proyecto). Se genera solo a partir del título si lo dejás vacío. Usá guiones y minúsculas." /></label>
-                  <input
-                    id="project-slug"
-                    placeholder="Ej: marca-personal-pola-mola"
-                    value={form.slug}
-                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
                     required
                     className="admin-field"
                   />
@@ -517,45 +528,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     <option key={cat} value={cat} />
                   ))}
                 </datalist>
-                <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>
-                  <RichTextEditor
-                    value={form.description}
-                    onChange={(html) => setForm({ ...form, description: html })}
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Secciones del proyecto <HelpTip text="Bloques modulares (texto, imagen o video) que aparecen después de la descripción. Cada bloque tiene un tamaño (pequeño/mediano/grande) y se acomodan solos en una grilla. Podés reordenarlos arrastrando." /></label>
-                  <ProjectSectionsEditor
-                    sections={form.sections ?? []}
-                    onChange={(next) => setForm({ ...form, sections: next })}
-                    uploadToCloudinary={uploadToCloudinary}
-                    onShowSnackbar={onShowSnackbar}
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-metrics">Métricas (opcional) <HelpTip text="Logros cuantificables. Separados por coma; cada uno se muestra como una tarjeta de resultado en el detalle." /></label>
-                  <input
-                    id="project-metrics"
-                    placeholder="Ej: +40% conversión, 12k alcance"
-                    value={Array.isArray(form.metrics) ? form.metrics.join(", ") : form.metrics || ""}
-                    onChange={(e) => setForm({ ...form, metrics: e.target.value })}
-                    className="admin-field"
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-size">Tamaño en la portada <HelpTip text="Cuánto espacio ocupa la tarjeta en la portada pública: grande (ancha), mediano o pequeño (estrecha)." /></label>
-                  <select
-                    id="project-size"
-                    value={form.size || "medium"}
-                    onChange={(e) => setForm({ ...form, size: e.target.value as Project["size"] })}
-                    className="admin-field admin-select"
-                  >
-                    <option value="large">Destacado (grande)</option>
-                    <option value="medium">Mediano</option>
-                    <option value="small">Pequeño</option>
-                  </select>
-                </div>
 
                 <div className="admin-field-group">
                   <label className="admin-field-label">Imagen principal del proyecto <HelpTip text="Foto destacada que se muestra al abrir el proyecto y en su tarjeta de la portada." /></label>
@@ -577,9 +549,15 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   <input
                     placeholder="O pegá una URL directamente"
                     value={form.image}
-                    onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); }}
+                    onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); setCoverPreview(""); }}
                     className="admin-field"
                   />
+                  {(coverPreviewUrl || form.image) && (
+                    <div className="admin-cover-preview">
+                      <img src={coverPreviewUrl || form.image} alt="Vista previa de la imagen principal" />
+                      <span className="admin-cover-preview-label">Vista previa</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="admin-field-group">
@@ -637,8 +615,64 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 )}
 
                 <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>
+                  <RichTextEditor
+                    value={form.description}
+                    onChange={(html) => setForm({ ...form, description: html })}
+                  />
+                </div>
+                <div className="admin-field-row">
+                  <div className="admin-field-col">
+                    <label className="admin-field-label" htmlFor="project-role">Rol (opcional) <HelpTip text="Rol que desempeñaste en el proyecto (se muestra en la ficha, antes de Resultados). Por defecto 'Diseñadora'." /></label>
+                    <input
+                      id="project-role"
+                      placeholder="Ej: Diseñadora"
+                      value={form.role || ""}
+                      onChange={(e) => setForm({ ...form, role: e.target.value })}
+                      className="admin-field"
+                    />
+                  </div>
+                  <div className="admin-field-col">
+                    <label className="admin-field-label" htmlFor="project-tools">Herramientas (opcional) <HelpTip text="Herramientas usadas, separadas por coma. Se muestran en la ficha del proyecto." /></label>
+                    <input
+                      id="project-tools"
+                      placeholder="Ej: Figma, Photoshop, Illustrator"
+                      value={toolsText}
+                      onChange={(e) => setToolsText(e.target.value)}
+                      className="admin-field"
+                    />
+                  </div>
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Descripción de Resultados (opcional) <HelpTip text="Texto que aparece bajo el título 'Resultados', antes de las tarjetas de métricas. Podés usar negrita, listas y enlaces." /></label>
+                  <RichTextEditor
+                    value={form.resultsDescription ?? ""}
+                    onChange={(html) => setForm({ ...form, resultsDescription: html })}
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label" htmlFor="project-metrics">Métricas (opcional) <HelpTip text="Logros cuantificables. Separados por coma; cada uno se muestra como una tarjeta de resultado en el detalle." /></label>
+                  <input
+                    id="project-metrics"
+                    placeholder="Ej: +40% conversión, 12k alcance"
+                    value={metricsText}
+                    onChange={(e) => setMetricsText(e.target.value)}
+                    className="admin-field"
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Secciones del proyecto <HelpTip text="Bloques modulares (texto, imagen o video) que aparecen después de la descripción. Cada bloque tiene un tamaño (pequeño/mediano/grande) y se acomodan solos en una grilla. Podés reordenarlos arrastrando." /></label>
+                  <ProjectSectionsEditor
+                    sections={form.sections ?? []}
+                    onChange={(next) => setForm({ ...form, sections: next })}
+                    uploadToCloudinary={uploadToCloudinary}
+                    onShowSnackbar={onShowSnackbar}
+                  />
+                </div>
+
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Galería de imágenes <HelpTip text="Imágenes adicionales que se muestran en el detalle público con un visor ampliable (lightbox)." /></label>
                   <div className="admin-gallery-head">
-                    <label className="admin-field-label">Galería de imágenes <HelpTip text="Imágenes adicionales que se muestran en el detalle público con un visor ampliable (lightbox)." /></label>
                     <span className="admin-gallery-count">{(form.gallery ?? []).length} imágenes</span>
                   </div>
                   {(form.gallery ?? []).length > 0 && (
@@ -661,7 +695,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   <div className="admin-gallery-actions">
                     <label htmlFor="gallery-images" className="admin-gallery-btn">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <path d="M21 15v4a2 0 0 1-2 2H5a2 0 0 1-2-2v-4" />
                         <polyline points="17 8 12 3 7 8" />
                         <line x1="12" y1="3" x2="12" y2="15" />
                       </svg>
@@ -691,6 +725,18 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   {uploadingGallery && <p className="admin-gallery-hint">Subiendo imágenes...</p>}
                 </div>
               </div>
+
+            </div>
+
+            <div className="admin-editor-floating-actions">
+              <button type="button" onClick={closeModal} className="admin-editor-cancel">Cancelar</button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="admin-editor-save"
+              >
+                {loading ? "Guardando..." : editing ? "Guardar cambios" : "Crear proyecto"}
+              </button>
             </div>
           </form>
 

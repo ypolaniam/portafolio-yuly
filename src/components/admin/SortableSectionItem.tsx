@@ -4,10 +4,12 @@ import type { ProjectSection } from "../../types/project";
 
 interface SortableSectionItemProps {
   section: ProjectSection;
-  children: (props: { listeners: ReturnType<typeof useSortable> extends { listeners: infer L } ? L : never; isDragging: boolean }) => React.ReactNode;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  children: (props: { listeners: ReturnType<typeof useSortable> extends { listeners: infer L } ? L : never; isDragging: boolean; collapsed: boolean; onToggleCollapse?: () => void }) => React.ReactNode;
 }
 
-export default function SortableSectionItem({ section, children }: SortableSectionItemProps) {
+export default function SortableSectionItem({ section, collapsed, onToggleCollapse, children }: SortableSectionItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
   });
@@ -21,7 +23,7 @@ export default function SortableSectionItem({ section, children }: SortableSecti
 
   return (
     <div ref={setNodeRef} style={outerStyle} {...attributes}>
-      {children({ listeners, isDragging })}
+      {children({ listeners, isDragging, collapsed: !!collapsed, onToggleCollapse })}
     </div>
   );
 }

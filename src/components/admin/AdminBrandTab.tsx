@@ -78,6 +78,13 @@ export default function AdminBrandTab({ brand, onBrandChange, migrationLoading, 
     try {
       const payload = { ...form, name: form.name.trim() };
       await setBrand(payload);
+      // Cache the name locally so the public site can render it before the
+      // Firestore snapshot arrives (avoids a flash of the hardcoded default).
+      try {
+        if (typeof window !== "undefined") localStorage.setItem("yp_brand_name", payload.name);
+      } catch {
+        // ignore storage errors (private mode, quota, etc.)
+      }
       onBrandChange(payload);
       onShowSnackbar?.("Marca guardada correctamente.");
     } catch (err) {

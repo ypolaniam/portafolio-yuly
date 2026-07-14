@@ -53,6 +53,7 @@ interface ProjectSectionsEditorProps {
 export default function ProjectSectionsEditor({ sections, onChange, uploadToCloudinary, onShowSnackbar }: ProjectSectionsEditorProps) {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [fileName, setFileName] = useState<Record<string, string>>({});
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set(sections.map((s) => s.id)));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -60,10 +61,12 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
   );
 
   const addSection = () => {
+    const id = crypto.randomUUID();
     onChange([
       ...sections,
-      { id: crypto.randomUUID(), type: "text", size: "medium" },
+      { id, type: "text", size: "medium" },
     ]);
+    setCollapsedIds((prev) => new Set(prev).add(id));
   };
 
   const updateSection = (id: string, patch: Partial<ProjectSection>) => {
@@ -72,6 +75,14 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
 
   const removeSection = (id: string) => {
     onChange(sections.filter((s) => s.id !== id));
+  };
+
+  const toggleCollapse = (id: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -121,16 +132,6 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
 
   return (
     <div className="section-editor">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-        <label className="admin-field-label" style={{ margin: 0 }}>
-          Secciones del proyecto
-          <HelpTip text="Bloques de contenido composicional que van después de la descripción. Usá texto, imágenes o videos y elegí el ancho de cada uno." />
-        </label>
-        <span style={{ fontSize: "0.75rem", color: COLORS.textMuted }}>
-          {sections.length} sección{sections.length !== 1 ? "es" : ""}
-        </span>
-      </div>
-
       {sections.length > 0 && (
         <DndContext
           sensors={sensors}
@@ -146,11 +147,23 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                 const typeInfo = SECTION_TYPE_OPTIONS.find((o) => o.value === section.type);
 
                 return (
-                  <SortableSectionItem key={section.id} section={section}>
-                    {({ listeners, isDragging }) => (
+                  <SortableSectionItem key={section.id} section={section} collapsed={collapsedIds.has(section.id)} onToggleCollapse={() => toggleCollapse(section.id)}>
+                    {({ listeners, isDragging, collapsed, onToggleCollapse }) => (
                       <div className="section-editor-card">
                         <div className="section-editor-header">
                           <div className="section-editor-title">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onToggleCollapse?.(); }}
+                              className="section-collapse-btn"
+                              aria-label={collapsed ? "Expandir sección" : "Colapsar sección"}
+                              aria-expanded={collapsed}
+                              style={{
+                                transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
+                              }}
+                            >
+                              ▼
+                            </button>
                             <span
                               className="section-drag-handle"
                               title="Arrastrar para reordenar"
@@ -197,13 +210,14 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                           </div>
                         </div>
 
-                        <div className="section-editor-body">
-                          {section.type === "text" && (
-                            <RichTextEditor
-                              value={section.content || ""}
-                              onChange={(html) => updateSection(section.id, { content: html })}
-                            />
-                          )}
+                        {!collapsed && (
+                          <div className="section-editor-body">
+                            {section.type === "text" && (
+                              <RichTextEditor
+                                value={section.content || ""}
+                                onChange={(html) => updateSection(section.id, { content: html })}
+                              />
+                            )}
 
                           {section.type === "image" && (
                             <div className="section-editor-fields">
@@ -274,8 +288,9 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                             className="admin-field"
                           />
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  )}
                   </SortableSectionItem>
                 );
               })}

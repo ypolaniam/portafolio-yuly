@@ -64,6 +64,24 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
     );
   }
 
+  if (project.visible === false) {
+    return (
+      <article className="project-detail">
+        <div style={{ textAlign: "center", padding: "4rem" }}>
+          <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 700, marginBottom: "1rem" }}>Proyecto no disponible</h1>
+          <p style={{ color: "var(--color-text-light)", marginBottom: "2rem" }}>Este proyecto está oculto y no se puede ver por el momento.</p>
+          <a href="/#trabajo" className="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver al portafolio
+          </a>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="project-detail">
       <div className="reveal">
@@ -104,7 +122,7 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
             </div>
             <div className="meta-item">
               <span className="meta-label">Rol</span>
-              <span className="meta-value">Diseñadora</span>
+              <span className="meta-value">{project.role || "Diseñadora"}</span>
             </div>
             <div className="meta-item">
               <span className="meta-label">Herramientas</span>
@@ -115,6 +133,12 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
           {project.metrics && (
             <div className="project-metrics-section">
               <h3 className="metrics-title">Resultados</h3>
+              {project.resultsDescription && (
+                <div
+                  className="project-results-description"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.resultsDescription) }}
+                />
+              )}
               <div className="metrics-grid">
                 {Array.isArray(project.metrics)
                   ? project.metrics.map((m) => (
