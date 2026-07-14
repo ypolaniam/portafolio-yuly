@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { getOptimizedImageUrl } from "../lib/cloudinary";
 import { initialProjects } from "../data/projects";
 import type { Project } from "../types/project";
+import ProjectCoverMedia from "./ProjectCoverMedia";
 
 interface ProjectCarouselProps {
   currentSlug: string;
@@ -214,7 +214,7 @@ export default function ProjectCarousel({ currentSlug }: ProjectCarouselProps) {
             <article key={`${project.slug}-${index}`} className="project-card">
               <a href={`/trabajo/${project.slug}/`} className="project-card-link" aria-label={`Ver detalle: ${project.title}`}>
                 <div className="project-card-image">
-                  <img src={getOptimizedImageUrl(project.image)} alt={project.title} loading="lazy" />
+                  <ProjectCoverMedia project={project} variant="loop" />
                   <div className="project-card-overlay">
                     <span className="overlay-title">Ver proyecto →</span>
                     {project.metrics ? (

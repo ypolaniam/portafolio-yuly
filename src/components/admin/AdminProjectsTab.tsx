@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Project } from "../../types/project";
+import type { Project, ProjectVideo, VideoSource } from "../../types/project";
+import { parseYouTubeId, getCloudinaryVideoUrl, getYouTubeEmbedUrl } from "../../lib/cloudinary";
 import {
   DndContext,
   closestCenter,
@@ -40,6 +41,13 @@ interface AdminProjectsTabProps {
   onMigrateProjects: () => Promise<void>;
 }
 
+function formatTime(sec: number): string {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 const blankProject = (): Project => ({
   slug: "",
   title: "",
@@ -52,6 +60,7 @@ const blankProject = (): Project => ({
   size: "medium",
   visible: true,
   gallery: [],
+  video: undefined,
 });
 
 export default function AdminProjectsTab({ projects, onProjectsChange, migrationLoading, onMigrateProjects }: AdminProjectsTabProps) {
@@ -63,6 +72,17 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
   const [form, setForm] = useState<Project>(blankProject());
   const draggingRef = useRef(false);
 
+  // Cover type: "image" keeps the static `image`; "video" uses `form.video`.
+  const [coverType, setCoverType] = useState<"image" | "video">("image");
+  const [videoSource, setVideoSource] = useState<VideoSource>("cloudinary");
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [videoFileName, setVideoFileName] = useState<string>("");
+  const [youTubeUrl, setYouTubeUrl] = useState<string>("");
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [segStart, setSegStart] = useState<number>(0);
+  const [segEnd, setSegEnd] = useState<number>(0);
+  const [testingLoop, setTestingLoop] = useState(false);
+
   const existingCategories = Array.from(
     new Set(projects.map((p) => p.category).filter((c): c is string => Boolean(c)))
   );
@@ -70,12 +90,35 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
   const openCreate = () => {
     setEditing(null);
     setForm(blankProject());
+    setCoverType("image");
+    setVideoSource("cloudinary");
+    setVideoFileName("");
+    setYouTubeUrl("");
+    setVideoDuration(0);
+    setSegStart(0);
+    setSegEnd(0);
+    setTestingLoop(false);
     setIsModalOpen(true);
   };
 
   const openEdit = (project: Project) => {
     setEditing(project);
     setForm({ ...project, gallery: project.gallery ?? [] });
+    const hasVideo = Boolean(project.video?.url);
+    setCoverType(hasVideo ? "video" : "image");
+    setVideoSource(project.video?.source ?? "cloudinary");
+    setVideoFileName("");
+    setYouTubeUrl(project.video?.source === "youtube" ? project.video.url : "");
+    setVideoDuration(0);
+    if (hasVideo) {
+      setSegStart(project.video?.start ?? 0);
+      const total = project.video?.duration ?? 0;
+      setSegEnd((project.video?.start ?? 0) + total);
+    } else {
+      setSegStart(0);
+      setSegEnd(0);
+    }
+    setTestingLoop(false);
     setIsModalOpen(true);
   };
 
@@ -83,9 +126,110 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     setIsModalOpen(false);
     setEditing(null);
     setFileName("");
+    setVideoFileName("");
+    setYouTubeUrl("");
+    setTestingLoop(false);
   };
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
+  const applySegment = (start: number, end: number) => {
+    setForm((prev) => ({
+      ...prev,
+      video: prev.video
+        ? {
+            ...prev.video,
+            start: Math.max(0, Math.round(start)),
+            duration: Math.max(1, Math.round(end - start)),
+          }
+        : prev.video,
+    }));
+  };
+
+  const handleCoverTypeChange = (type: "image" | "video") => {
+    setCoverType(type);
+    if (type === "image") {
+      setForm((prev) => {
+        const next = { ...prev };
+        delete next.video;
+        return next;
+      });
+    } else if (!form.video) {
+      setForm((prev) => ({
+        ...prev,
+        video: { source: videoSource, url: videoSource === "youtube" ? youTubeUrl : "" },
+      }));
+    }
+  };
+
+  const handleVideoSourceChange = (source: VideoSource) => {
+    setVideoSource(source);
+    setForm((prev) => ({
+      ...prev,
+      video: prev.video ? { ...prev.video, source } : { source, url: source === "youtube" ? youTubeUrl : "" },
+    }));
+  };
+
+  const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoFileName(file.name);
+    setVideoUploading(true);
+    try {
+      const url = await uploadToCloudinary(file, "video");
+      setForm((prev) => ({
+        ...prev,
+        video: { source: "cloudinary", url, start: 0, duration: 0 },
+      }));
+      setSegStart(0);
+      setSegEnd(0);
+    } catch (err) {
+      console.error(err);
+      alert("Error subiendo el video a Cloudinary");
+    } finally {
+      setVideoUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleYouTubeChange = (value: string) => {
+    setYouTubeUrl(value);
+    const id = parseYouTubeId(value);
+    setForm((prev) => ({
+      ...prev,
+      video: id ? { source: "youtube", url: value, start: 0, duration: 0 } : prev.video ? { ...prev.video, url: "" } : prev.video,
+    }));
+    setSegStart(0);
+    setSegEnd(0);
+  };
+
+  const handlePreviewLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const dur = Math.floor(e.currentTarget.duration || 0);
+    setVideoDuration(dur);
+    setSegEnd((prev) => (prev > 0 && prev <= dur ? prev : dur));
+  };
+
+  const handleScrubberChange = (kind: "start" | "end", value: number) => {
+    if (kind === "start") {
+      const start = Math.min(value, segEnd);
+      setSegStart(start);
+      applySegment(start, segEnd);
+    } else {
+      const end = Math.max(value, segStart + 1);
+      setSegEnd(end);
+      applySegment(segStart, end);
+    }
+  };
+
+  const handleUseFullVideo = () => {
+    setSegStart(0);
+    setSegEnd(videoDuration);
+    applySegment(0, videoDuration);
+  };
+
+  const handleTestLoop = () => {
+    setTestingLoop((prev) => !prev);
+  };
+
+  const uploadToCloudinary = async (file: File, resourceType: "image" | "video" = "image"): Promise<string> => {
     const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
     const preset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -94,12 +238,12 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       throw new Error("Cloudinary no configurado");
     }
 
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
     const fd = new FormData();
     fd.append("file", file);
     fd.append("upload_preset", preset);
     const res = await fetch(url, { method: "POST", body: fd });
-    if (!res.ok) throw new Error("Error subiendo imagen");
+    if (!res.ok) throw new Error("Error subiendo archivo");
     const data = await res.json();
     return data.secure_url as string;
   };
@@ -120,9 +264,21 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
         return;
       }
 
+      let video = form.video;
+      if (coverType === "video") {
+        if (!video?.url) {
+          alert("Subí un video a Cloudinary o pegá una URL de YouTube");
+          setLoading(false);
+          return;
+        }
+      } else {
+        video = undefined;
+      }
+
       const payload: Project = {
         ...form,
         image,
+        video,
         slug: form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
       };
 
@@ -479,6 +635,194 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     className="admin-field"
                   />
                 </div>
+
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Portada del proyecto <HelpTip text="Podés usar la imagen principal o un video de portada (Cloudinary o YouTube). La imagen sigue siendo el póster/fallback del video." /></label>
+                  <div className="admin-radio-row">
+                    <label className={`admin-radio ${coverType === "image" ? "active" : ""}`}>
+                      <input
+                        type="radio"
+                        name="cover-type"
+                        checked={coverType === "image"}
+                        onChange={() => handleCoverTypeChange("image")}
+                      />
+                      Imagen
+                    </label>
+                    <label className={`admin-radio ${coverType === "video" ? "active" : ""}`}>
+                      <input
+                        type="radio"
+                        name="cover-type"
+                        checked={coverType === "video"}
+                        onChange={() => handleCoverTypeChange("video")}
+                      />
+                      Video
+                    </label>
+                  </div>
+                </div>
+
+                {coverType === "video" && (
+                  <div className="admin-field-group admin-video-block">
+                    <div className="admin-radio-row">
+                      <label className={`admin-radio ${videoSource === "cloudinary" ? "active" : ""}`}>
+                        <input
+                          type="radio"
+                          name="video-source"
+                          checked={videoSource === "cloudinary"}
+                          onChange={() => handleVideoSourceChange("cloudinary")}
+                        />
+                        Subir a Cloudinary
+                      </label>
+                      <label className={`admin-radio ${videoSource === "youtube" ? "active" : ""}`}>
+                        <input
+                          type="radio"
+                          name="video-source"
+                          checked={videoSource === "youtube"}
+                          onChange={() => handleVideoSourceChange("youtube")}
+                        />
+                        URL de YouTube
+                      </label>
+                    </div>
+
+                    {videoSource === "cloudinary" ? (
+                      <div>
+                        <input
+                          id="project-video"
+                          type="file"
+                          accept="video/*"
+                          onChange={handleVideoFile}
+                          style={{ display: "none" }}
+                        />
+                        <label htmlFor="project-video" className="admin-gallery-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                          </svg>
+                          {videoUploading ? "Subiendo video..." : videoFileName ? `Cambiar video (${videoFileName})` : "Seleccionar video"}
+                        </label>
+                        {form.video?.source === "cloudinary" && form.video.url && (
+                          <input
+                            placeholder="O pegá una URL directa de Cloudinary"
+                            value={form.video.url}
+                            onChange={(e) => setForm((prev) => ({ ...prev, video: prev.video ? { ...prev.video, url: e.target.value } : prev.video }))}
+                            className="admin-field"
+                          />
+                        )}
+                        {!form.video?.url && (
+                          <p className="admin-gallery-hint">
+                            El preset de Cloudinary debe permitir videos (resource_type video/auto).
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          placeholder="https://youtu.be/ID o https://youtube.com/watch?v=ID"
+                          value={youTubeUrl}
+                          onChange={(e) => handleYouTubeChange(e.target.value)}
+                          className="admin-field"
+                        />
+                        {youTubeUrl && !parseYouTubeId(youTubeUrl) && (
+                          <p className="admin-gallery-hint" style={{ color: "#EF4444" }}>
+                            URL de YouTube no válida.
+                          </p>
+                        )}
+                        {videoSource === "youtube" && (
+                          <p className="admin-gallery-hint">
+                            En la portada el video se reproduce en bucle desde el inicio (se ignora el recorte de duración).
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {form.video?.url && (
+                      <div className="admin-scrubber">
+                        <div className="admin-scrubber-preview">
+                          {form.video.source === "cloudinary" ? (
+                            <video
+                              src={getCloudinaryVideoUrl(form.video.url)}
+                              poster={form.image || undefined}
+                              controls
+                              onLoadedMetadata={handlePreviewLoadedMetadata}
+                              preload="metadata"
+                            />
+                          ) : (
+                            <iframe
+                              src={getYouTubeEmbedUrl(parseYouTubeId(form.video.url) ?? "")}
+                              title="YouTube preview"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              frameBorder="0"
+                            />
+                          )}
+                        </div>
+
+                        <div className="admin-scrubber-controls">
+                          {form.video.source === "cloudinary" ? (
+                            <>
+                              <div className="admin-scrubber-row">
+                                <span className="admin-scrubber-label">Inicio</span>
+                                <input
+                                  type="range"
+                                  min={0}
+                                  max={Math.max(videoDuration, 1)}
+                                  value={Math.min(segStart, videoDuration || segStart)}
+                                  onChange={(e) => handleScrubberChange("start", Number(e.target.value))}
+                                />
+                                <span className="admin-scrubber-time">{formatTime(segStart)}</span>
+                              </div>
+                              <div className="admin-scrubber-row">
+                                <span className="admin-scrubber-label">Fin</span>
+                                <input
+                                  type="range"
+                                  min={0}
+                                  max={Math.max(videoDuration, 1)}
+                                  value={Math.min(segEnd, videoDuration || segEnd)}
+                                  onChange={(e) => handleScrubberChange("end", Number(e.target.value))}
+                                />
+                                <span className="admin-scrubber-time">{formatTime(segEnd)}</span>
+                              </div>
+                              <div className="admin-scrubber-actions">
+                                <button type="button" className="admin-gallery-btn" onClick={handleUseFullVideo}>
+                                  Usar video completo
+                                </button>
+                                <button type="button" className="admin-gallery-btn" onClick={handleTestLoop}>
+                                  {testingLoop ? "Detener prueba" : "Probar bucle"}
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="admin-scrubber-row">
+                              <span className="admin-scrubber-label">Inicio</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={600}
+                                value={form.video.start ?? 0}
+                                onChange={(e) => setForm((prev) => ({ ...prev, video: prev.video ? { ...prev.video, start: Math.max(0, Number(e.target.value)) } : prev.video }))}
+                                className="admin-field admin-scrubber-number"
+                              />
+                              <span className="admin-scrubber-time">seg</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {testingLoop && form.video.source === "cloudinary" && (
+                          <div className="admin-scrubber-test">
+                            <video
+                              src={getCloudinaryVideoUrl(form.video.url, { start: form.video.start, duration: form.video.duration })}
+                              poster={form.image || undefined}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="admin-field-group">
                   <div className="admin-gallery-head">

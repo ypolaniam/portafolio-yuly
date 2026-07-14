@@ -1,14 +1,12 @@
 import type { Project } from "../types/project";
 import { getOptimizedImageUrl } from "../lib/cloudinary";
+import ProjectCoverMedia from "./ProjectCoverMedia";
 
 interface ProjectLivePreviewProps {
   project: Project;
 }
 
-const FALLBACK_IMAGE = "https://placehold.co/1200x675/8B5CF6/FFFFFF?text=Proyecto";
-
 export default function ProjectLivePreview({ project }: ProjectLivePreviewProps) {
-  const image = project.image ? getOptimizedImageUrl(project.image) : FALLBACK_IMAGE;
   const tools = project.tools && project.tools.length ? project.tools.join(", ") : "Figma, Adobe CC";
   const metrics = project.metrics
     ? Array.isArray(project.metrics)
@@ -25,7 +23,7 @@ export default function ProjectLivePreview({ project }: ProjectLivePreviewProps)
       </header>
 
       <figure className="project-detail-image">
-        <img src={image} alt={project.title || "Vista previa"} />
+        <ProjectCoverMedia project={project} variant="player" />
       </figure>
 
       <div className="project-detail-body">

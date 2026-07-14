@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import type { Project, CardMode } from "../types/project";
-import { getOptimizedImageUrl } from "../lib/cloudinary";
+import ProjectCoverMedia from "./ProjectCoverMedia";
 
 export interface ProjectCardProps {
   project: Project;
@@ -10,15 +9,8 @@ export interface ProjectCardProps {
   onToggleVisibility?: (slug: string, visible: boolean) => void;
 }
 
-const FALLBACK_IMAGE = "https://placehold.co/800x500/8B5CF6/FFFFFF?text=Proyecto";
-
 export default function ProjectCard({ project, mode = "display", onEdit, onDelete, onToggleVisibility }: ProjectCardProps) {
   const isHidden = project.visible === false;
-  const [imgSrc, setImgSrc] = useState(() => getOptimizedImageUrl(project.image) || FALLBACK_IMAGE);
-
-  useEffect(() => {
-    setImgSrc(getOptimizedImageUrl(project.image) || FALLBACK_IMAGE);
-  }, [project.image]);
 
   const sizeClass = project.size ?? "medium";
 
@@ -40,12 +32,7 @@ export default function ProjectCard({ project, mode = "display", onEdit, onDelet
   const cardInner = (
     <>
       <div className="project-card-image">
-        <img
-          src={imgSrc}
-          alt={project.title}
-          loading="lazy"
-          onError={() => setImgSrc(FALLBACK_IMAGE)}
-        />
+        <ProjectCoverMedia project={project} variant="loop" />
         <div className="project-card-overlay">
           <span className="overlay-title">Ver proyecto →</span>
           {project.metrics ? (

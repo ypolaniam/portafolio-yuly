@@ -5,6 +5,7 @@ import { getOptimizedImageUrl } from "../lib/cloudinary";
 import type { Project } from "../types/project";
 import ProjectCarousel from "./ProjectCarousel.tsx";
 import Lightbox from "./Lightbox.tsx";
+import ProjectCoverMedia from "./ProjectCoverMedia.tsx";
 
 export default function ProjectDetailClient({ initialSlug, initialProject }: { initialSlug: string | undefined; initialProject?: Project }) {
   const [project, setProject] = useState<Project | null>(initialProject ?? null);
@@ -79,7 +80,7 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
 
       <div className="reveal" style={{ transitionDelay: "150ms" }}>
         <figure className="project-detail-image">
-          <img src={getOptimizedImageUrl(project.image)} alt={project.title} />
+          <ProjectCoverMedia project={project} variant="player" />
         </figure>
       </div>
 
