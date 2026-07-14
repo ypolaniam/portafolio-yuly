@@ -21,9 +21,10 @@ interface AdminAboutTabProps {
   onAboutChange: (about: About) => void;
   migrationLoading: boolean;
   onMigrateAbout: () => Promise<void>;
+  onShowSnackbar?: (message: string, type?: "success" | "error") => void;
 }
 
-export default function AdminAboutTab({ about, onAboutChange, migrationLoading, onMigrateAbout }: AdminAboutTabProps) {
+export default function AdminAboutTab({ about, onAboutChange, migrationLoading, onMigrateAbout, onShowSnackbar }: AdminAboutTabProps) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<About>({ ...about });
 
@@ -39,21 +40,21 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
     try {
       const emptyParagraph = form.intro.findIndex((p) => !stripHtml(p).trim());
       if (emptyParagraph !== -1) {
-        alert("Todos los párrafos de la introducción son requeridos");
+        onShowSnackbar?.("Todos los párrafos de la introducción son requeridos", "error");
         setLoading(false);
         return;
       }
 
       const emptyValue = form.values.findIndex((v) => !stripHtml(v.description).trim());
       if (emptyValue !== -1) {
-        alert("La descripción de cada valor es requerida");
+        onShowSnackbar?.("La descripción de cada valor es requerida", "error");
         setLoading(false);
         return;
       }
 
       const emptyEducation = form.education.findIndex((edu) => !stripHtml(edu.detail).trim());
       if (emptyEducation !== -1) {
-        alert("El detalle de cada formación es requerido");
+        onShowSnackbar?.("El detalle de cada formación es requerido", "error");
         setLoading(false);
         return;
       }
@@ -62,7 +63,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
       onAboutChange(form);
     } catch (err) {
       console.error(err);
-      alert("Error guardando datos de Sobre mí");
+      onShowSnackbar?.("Error guardando datos de Sobre mí", "error");
     } finally {
       setLoading(false);
     }

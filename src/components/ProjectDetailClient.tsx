@@ -7,6 +7,7 @@ import { sanitizeHtml } from "../lib/html";
 import ProjectCarousel from "./ProjectCarousel.tsx";
 import Lightbox from "./Lightbox.tsx";
 import ProjectCoverMedia from "./ProjectCoverMedia.tsx";
+import ProjectSections from "./ProjectSections.tsx";
 
 export default function ProjectDetailClient({ initialSlug, initialProject }: { initialSlug: string | undefined; initialProject?: Project }) {
   const [project, setProject] = useState<Project | null>(initialProject ?? null);
@@ -91,6 +92,10 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
             className="project-lead"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
           />
+
+          {project.sections && project.sections.length > 0 && (
+            <ProjectSections sections={project.sections} />
+          )}
 
           <div className="project-meta">
             <div className="meta-item">

@@ -21,9 +21,10 @@ interface AdminHeroTabProps {
   onHeroChange: (hero: Hero) => void;
   migrationLoading: boolean;
   onMigrateHero: () => Promise<void>;
+  onShowSnackbar?: (message: string, type?: "success" | "error") => void;
 }
 
-export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onMigrateHero }: AdminHeroTabProps) {
+export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onMigrateHero, onShowSnackbar }: AdminHeroTabProps) {
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -41,7 +42,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     const preset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName || !preset) {
-      alert("Falta configurar Cloudinary.");
+      onShowSnackbar?.("Falta configurar Cloudinary.", "error");
       throw new Error("Cloudinary no configurado");
     }
 
@@ -60,7 +61,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     setLoading(true);
     try {
       if (!stripHtml(form.subtitle).trim()) {
-        alert("El subtítulo es requerido");
+        onShowSnackbar?.("El subtítulo es requerido", "error");
         setLoading(false);
         return;
       }
@@ -75,12 +76,12 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
       const payload = { ...form, photo };
       await setHero(payload);
       onHeroChange(payload);
-      alert("Cambios de Inicio guardados correctamente.");
+      onShowSnackbar?.("Cambios de Inicio guardados correctamente.");
       setPreviewUrl(null);
       setFileName("");
     } catch (err) {
       console.error(err);
-      alert("Error guardando datos de Inicio");
+      onShowSnackbar?.("Error guardando datos de Inicio", "error");
     } finally {
       setLoading(false);
     }

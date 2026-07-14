@@ -20,6 +20,7 @@ import { upsertProject, removeProject, reorderProjects, setProjectVisibility, ge
 import { stripHtml } from "../../lib/html";
 import SortableProjectItem from "../SortableProjectItem";
 import RichTextEditor from "./RichTextEditor";
+import ProjectSectionsEditor from "./ProjectSectionsEditor";
 import HelpTip from "./HelpTip";
 
 const COLORS = {
@@ -40,6 +41,7 @@ interface AdminProjectsTabProps {
   onProjectsChange: (projects: Project[]) => void;
   migrationLoading: boolean;
   onMigrateProjects: () => Promise<void>;
+  onShowSnackbar?: (message: string, type?: "success" | "error") => void;
 }
 
 const blankProject = (): Project => ({
@@ -55,9 +57,10 @@ const blankProject = (): Project => ({
   visible: true,
   gallery: [],
   video: undefined,
+  sections: [],
 });
 
-export default function AdminProjectsTab({ projects, onProjectsChange, migrationLoading, onMigrateProjects }: AdminProjectsTabProps) {
+export default function AdminProjectsTab({ projects, onProjectsChange, migrationLoading, onMigrateProjects, onShowSnackbar }: AdminProjectsTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -95,7 +98,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
 
   const openEdit = (project: Project) => {
     setEditing(project);
-    setForm({ ...project, gallery: project.gallery ?? [] });
+    setForm({ ...project, gallery: project.gallery ?? [], sections: project.sections ?? [] });
     const hasVideo = Boolean(project.video?.url);
     setCoverType(project.coverType ?? (hasVideo ? "video" : "image"));
     setYouTubeUrl(project.video?.source === "youtube" ? project.video.url : "");
@@ -143,7 +146,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     console.log("[cloudinary] iniciando subida:", { name: file.name, size: file.size, type: file.type, cloudName, preset });
 
     if (!cloudName || !preset) {
-      alert("Falta configurar Cloudinary. Definí PUBLIC_CLOUDINARY_CLOUD_NAME y PUBLIC_CLOUDINARY_UPLOAD_PRESET en las variables de entorno.");
+      onShowSnackbar?.("Falta configurar Cloudinary. Definí PUBLIC_CLOUDINARY_CLOUD_NAME y PUBLIC_CLOUDINARY_UPLOAD_PRESET en las variables de entorno.", "error");
       throw new Error("Cloudinary no configurado");
     }
 
@@ -167,21 +170,20 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     setLoading(true);
     try {
       if (!stripHtml(form.description).trim()) {
-        alert("La descripción es requerida");
+        onShowSnackbar?.("La descripción es requerida", "error");
         setLoading(false);
         return;
       }
 
       const fileInput = document.getElementById("project-image") as HTMLInputElement | null;
       let image = form.image;
-      console.log("[submit] inicia guardado. coverType:", coverType, "| form.image previo:", form.image, "| hay archivo nuevo:", Boolean(fileInput?.files?.[0]));
 
       if (fileInput?.files?.[0]) {
         image = await uploadToCloudinary(fileInput.files[0]);
       }
-      console.log("[submit] imagen resuelta:", image);
+
       if (!image) {
-        alert("La imagen es requerida");
+        onShowSnackbar?.("La imagen es requerida", "error");
         setLoading(false);
         return;
       }
@@ -190,7 +192,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       if (coverType === "video") {
         const ytId = parseYouTubeId(youTubeUrl);
         if (!ytId) {
-          alert("Pegá una URL válida de YouTube para la portada en video");
+          onShowSnackbar?.("Pegá una URL válida de YouTube para la portada en video", "error");
           setLoading(false);
           return;
         }
@@ -198,25 +200,34 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       } else {
         video = undefined;
       }
-      console.log("[submit] video resuelto:", video);
+
+      const cleanedSections = (form.sections ?? []).filter((s) => {
+        if (s.type === "text") return Boolean(stripHtml(s.content ?? "").trim());
+        if (s.type === "image") return Boolean((s.src ?? "").trim());
+        if (s.type === "video") return Boolean(parseYouTubeId(s.videoUrl ?? ""));
+        return false;
+      });
+      const droppedSections = (form.sections ?? []).length - cleanedSections.length;
+      if (droppedSections > 0) {
+        console.warn(`[submit] se omitieron ${droppedSections} sección(es) incompletas`);
+      }
 
       const payload: Project = {
         ...form,
         image,
         video,
         coverType,
+        sections: cleanedSections,
         slug: form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
       };
-      console.log("[submit] payload a guardar:", JSON.parse(JSON.stringify(payload)));
 
       await upsertProject(payload);
-      console.log("[submit] guardado en Firebase OK");
       const updated = await getProjectsOnce();
       onProjectsChange(updated);
       setShowConfirm(false);
     } catch (err) {
       console.error("[submit] error guardando proyecto:", err);
-      alert("Error guardando proyecto");
+      onShowSnackbar?.("Error guardando proyecto", "error");
     } finally {
       setLoading(false);
     }
@@ -242,7 +253,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       setForm((prev) => ({ ...prev, gallery: [...(prev.gallery ?? []), ...uploaded] }));
     } catch (err) {
       console.error(err);
-      alert("Error subiendo imágenes de la galería");
+      onShowSnackbar?.("Error subiendo imágenes de la galería", "error");
     } finally {
       setUploadingGallery(false);
       e.target.value = "";
@@ -267,7 +278,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       onProjectsChange(updated);
     } catch (err) {
       console.error(err);
-      alert("Error al eliminar el proyecto");
+      onShowSnackbar?.("Error al eliminar el proyecto", "error");
     }
   };
 
@@ -277,7 +288,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       await setProjectVisibility(slug, visible);
     } catch (err) {
       console.error(err);
-      alert("Error al cambiar la visibilidad");
+      onShowSnackbar?.("Error al cambiar la visibilidad", "error");
     }
   };
 
@@ -296,7 +307,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       await reorderProjects(next);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar el orden");
+      onShowSnackbar?.("Error al guardar el orden", "error");
     }
   };
 
@@ -506,6 +517,15 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   <RichTextEditor
                     value={form.description}
                     onChange={(html) => setForm({ ...form, description: html })}
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Secciones del proyecto <HelpTip text="Bloques modulares (texto, imagen o video) que aparecen después de la descripción. Cada bloque tiene un tamaño (pequeño/mediano/grande) y se acomodan solos en una grilla. Podés reordenarlos arrastrando." /></label>
+                  <ProjectSectionsEditor
+                    sections={form.sections ?? []}
+                    onChange={(next) => setForm({ ...form, sections: next })}
+                    uploadToCloudinary={uploadToCloudinary}
+                    onShowSnackbar={onShowSnackbar}
                   />
                 </div>
                 <div className="admin-field-group">

@@ -37,6 +37,7 @@ interface AdminExperienceTabProps {
   onTimelineChange: (timeline: TimelineItem[]) => void;
   migrationLoading: boolean;
   onMigrateTimeline: () => Promise<void>;
+  onShowSnackbar?: (message: string, type?: "success" | "error") => void;
 }
 
 const blankItem = (): TimelineItem => ({
@@ -52,7 +53,7 @@ const blankItem = (): TimelineItem => ({
   visible: true,
 });
 
-export default function AdminExperienceTab({ timeline, onTimelineChange, migrationLoading, onMigrateTimeline }: AdminExperienceTabProps) {
+export default function AdminExperienceTab({ timeline, onTimelineChange, migrationLoading, onMigrateTimeline, onShowSnackbar }: AdminExperienceTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<TimelineItem | null>(null);
   const [loading, setLoading] = useState(false);
@@ -92,7 +93,7 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
       closeModal();
     } catch (err) {
       console.error(err);
-      alert("Error guardando item de experiencia");
+      onShowSnackbar?.("Error guardando item de experiencia", "error");
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
       onTimelineChange(updated);
     } catch (err) {
       console.error(err);
-      alert("Error al eliminar el item");
+      onShowSnackbar?.("Error al eliminar el item", "error");
     }
   };
 
@@ -116,7 +117,7 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
       await setTimelineItemVisibility(id, visible);
     } catch (err) {
       console.error(err);
-      alert("Error al cambiar la visibilidad");
+      onShowSnackbar?.("Error al cambiar la visibilidad", "error");
     }
   };
 
@@ -135,7 +136,7 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
       await reorderTimeline(next);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar el orden");
+      onShowSnackbar?.("Error al guardar el orden", "error");
     }
   };
 

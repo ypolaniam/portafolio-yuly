@@ -1,5 +1,19 @@
 export type VideoSource = "cloudinary" | "youtube";
 
+export type SectionType = "text" | "image" | "video";
+export type SectionSize = "small" | "medium" | "large";
+
+export interface ProjectSection {
+  id: string;            // crypto.randomUUID()
+  type: SectionType;
+  size: SectionSize;
+  content?: string;      // text: HTML de tiptap (sanitizado al render)
+  src?: string;          // image: URL Cloudinary o directa
+  alt?: string;          // image: texto alternativo
+  videoUrl?: string;     // video: URL cruda de YouTube
+  caption?: string;      // caption opcional (imagen/video)
+}
+
 export interface ProjectVideo {
   source: VideoSource;
   // Cloudinary secure_url OR YouTube watch/embed URL.
@@ -35,6 +49,9 @@ export interface Project {
   // shows the looping video; the detail page shows a natural player. Falls back
   // to `image` when absent or when `coverType === "image"`.
   video?: ProjectVideo;
+  // Modular content sections shown after the description (grid auto-flow).
+  // Optional: existing records without this field render no sections.
+  sections?: ProjectSection[];
 }
 
 export type CardMode = "display" | "edit";
