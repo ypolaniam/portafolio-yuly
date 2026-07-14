@@ -55,6 +55,7 @@ const {
           }
           document.addEventListener("DOMContentLoaded", apply, { once: true });
           if (document.readyState !== "loading") apply();
+          window.__BRAND_READY__ = true;
         } catch (e) {}
       })();
     </script>

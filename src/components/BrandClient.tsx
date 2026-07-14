@@ -12,6 +12,8 @@ function applyBrand(name: string) {
   document.querySelectorAll<HTMLElement>("[data-brand-name-full]").forEach((el) => {
     el.textContent = `${name}`;
   });
+  (window as any).__BRAND_READY__ = true;
+  window.dispatchEvent(new Event("brandready"));
 }
 
 export default function BrandClient() {
