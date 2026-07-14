@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import IntroScene from "../components/IntroScene.astro";
+import BrandClient from "../components/BrandClient.tsx";
 
 interface Props {
   title?: string;
@@ -43,6 +44,20 @@ const {
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>{title}</title>
+    <script is:inline>
+      (function () {
+        try {
+          var name = localStorage.getItem("brand:name");
+          if (!name) return;
+          function apply() {
+            var els = document.querySelectorAll("[data-brand-name],[data-brand-name-full]");
+            els.forEach(function (el) { el.textContent = name; });
+          }
+          document.addEventListener("DOMContentLoaded", apply, { once: true });
+          if (document.readyState !== "loading") apply();
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <a href="#main" class="skip-link">Saltar al contenido</a>
@@ -62,7 +77,7 @@ const {
       <header id="admin-layout-header" class="site-header admin-layout-header">
         <div class="header-inner">
           <div class="brand">
-            <a href="/" class="logo">Yuly Polanía<span class="accent">.</span></a>
+            <a href="/" class="logo"><span data-brand-name>Yuly Polanía</span><span class="accent">.</span></a>
             <span class="brand-tagline">Panel admin</span>
           </div>
           <div class="admin-layout-header-actions">
@@ -82,7 +97,7 @@ const {
       <header class:list={["site-header", (showIntro || hideHeaderIntro) && "header-intro-hidden"]}>
         <div class="header-inner">
           <div class="brand">
-            <a href="/" class="logo">Yuly Polanía<span class="accent">.</span></a>
+            <a href="/" class="logo"><span data-brand-name>Yuly Polanía</span><span class="accent">.</span></a>
             <span class="brand-tagline">Estratega de Contenido · Diseñadora Visual</span>
           </div>
           <button
@@ -121,8 +136,10 @@ const {
       <slot />
     </main>
 
+    <BrandClient client:load />
+
     <footer class="site-footer">
-      <p>© {new Date().getFullYear()} Yuly Polanía Molano. Todos los derechos reservados.</p>
+      <p>© {new Date().getFullYear()} <span data-brand-name-full>Yuly Polanía</span>. Todos los derechos reservados.</p>
     </footer>
 
     <script>

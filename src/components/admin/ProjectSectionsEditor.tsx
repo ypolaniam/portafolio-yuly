@@ -202,7 +202,6 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                             <RichTextEditor
                               value={section.content || ""}
                               onChange={(html) => updateSection(section.id, { content: html })}
-                              compact
                             />
                           )}
 

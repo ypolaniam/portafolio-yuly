@@ -18,11 +18,14 @@ import AdminProjectsTab from "./admin/AdminProjectsTab";
 import AdminHeroTab from "./admin/AdminHeroTab";
 import AdminAboutTab from "./admin/AdminAboutTab";
 import AdminExperienceTab from "./admin/AdminExperienceTab";
+import AdminBrandTab from "./admin/AdminBrandTab";
 import Snackbar from "./admin/Snackbar";
 import { migrateProjects } from "../lib/projects";
 import { migrateHero } from "../lib/hero";
 import { migrateAbout } from "../lib/about";
 import { migrateTimeline } from "../lib/timeline";
+import { migrateBrand } from "../lib/brand";
+import type { Brand } from "../types/brand";
 
 const DEFAULT_HERO: Hero = {
   overline: "",
@@ -32,6 +35,10 @@ const DEFAULT_HERO: Hero = {
   ctaSecondary: { label: "", href: "" },
   photo: "",
   stats: [],
+};
+
+const DEFAULT_BRAND: Brand = {
+  name: "",
 };
 
 const DEFAULT_ABOUT: About = {
@@ -55,13 +62,14 @@ const COLORS = {
   white: "#FFFFFF",
 };
 
-type Tab = "hero" | "about" | "experience" | "projects";
+type Tab = "hero" | "projects" | "about" | "experience" | "brand";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "hero", label: "Inicio" },
   { id: "projects", label: "Proyectos" },
   { id: "about", label: "Sobre mí" },
   { id: "experience", label: "Experiencia" },
+  { id: "brand", label: "Marca" },
 ];
 
 export default function AdminPanel() {
@@ -76,6 +84,7 @@ export default function AdminPanel() {
   const [about, setAbout] = useState<About | null>(null);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [brand, setBrand] = useState<Brand | null>(null);
 
   const [migrationLoading, setMigrationLoading] = useState(false);
 
@@ -109,6 +118,7 @@ export default function AdminPanel() {
         about?: About;
         timeline?: TimelineItem[];
         projects?: Project[];
+        brand?: Brand;
       } | undefined);
       console.log("[AdminPanel] snapshot:", {
         hero: !!data?.hero,
@@ -120,6 +130,7 @@ export default function AdminPanel() {
       if (data?.about) setAbout(data.about);
       if (data?.timeline) setTimeline(data.timeline);
       if (data?.projects) setProjects(data.projects);
+      if (data?.brand) setBrand(data.brand);
     }, (err) => {
       console.error("[AdminPanel] onSnapshot error:", err);
       showSnackbar("Error de sincronización con la base de datos", "error");
@@ -503,6 +514,16 @@ export default function AdminPanel() {
                 onProjectsChange={setProjects}
                 migrationLoading={migrationLoading}
                 onMigrateProjects={() => runMigration(migrateProjects, "proyectos")}
+                onShowSnackbar={showSnackbar}
+              />
+            )}
+
+            {activeTab === "brand" && (
+              <AdminBrandTab
+                brand={brand ?? DEFAULT_BRAND}
+                onBrandChange={setBrand}
+                migrationLoading={migrationLoading}
+                onMigrateBrand={() => runMigration(migrateBrand, "marca")}
                 onShowSnackbar={showSnackbar}
               />
             )}
