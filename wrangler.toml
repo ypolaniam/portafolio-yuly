@@ -1,0 +1,9 @@
+# Cloudflare Pages — sitio estático (NO se usa el adaptador de Workers)
+# Build command: npm run build   →   Output directory: dist/
+#
+# Esto fija el proyecto como un build estático de Pages para que Wrangler
+# NO ejecute la auto-configuración de Astro (`astro add cloudflare`), la cual
+# inyecta el adaptador @astrojs/cloudflare y los bindings IMAGES/SESSION y rompe
+# el prerender estático (TypeError: Cannot read properties of undefined (reading 'bind')).
+name = "pola-mola"
+pages_build_output_dir = "dist"
