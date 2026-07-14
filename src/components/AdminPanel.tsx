@@ -311,7 +311,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div style={{
+    <div id="admin-scroll" style={{
       position: "fixed",
       top: "var(--header-height)",
       left: 0,

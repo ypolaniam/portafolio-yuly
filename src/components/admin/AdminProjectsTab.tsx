@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Project } from "../../types/project";
 import { parseYouTubeId, getYouTubeEmbedUrl } from "../../lib/cloudinary";
 import {
@@ -19,7 +19,6 @@ import {
 import { upsertProject, removeProject, reorderProjects, setProjectVisibility, getProjectsOnce } from "../../lib/projects";
 import { stripHtml } from "../../lib/html";
 import SortableProjectItem from "../SortableProjectItem";
-import ProjectLivePreview from "../ProjectLivePreview";
 import RichTextEditor from "./RichTextEditor";
 import HelpTip from "./HelpTip";
 
@@ -60,12 +59,22 @@ const blankProject = (): Project => ({
 
 export default function AdminProjectsTab({ projects, onProjectsChange, migrationLoading, onMigrateProjects }: AdminProjectsTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [form, setForm] = useState<Project>(blankProject());
   const draggingRef = useRef(false);
+
+  // When the editor opens, reset the panel's scroll to the top so it doesn't
+  // appear scrolled to the bottom (where the clicked item was in the list).
+  useEffect(() => {
+    if (isModalOpen) {
+      const el = document.getElementById("admin-scroll");
+      if (el) el.scrollTop = 0;
+    }
+  }, [isModalOpen]);
 
   // Cover type: "image" keeps the static `image`; "video" uses a YouTube URL in `form.video`.
   const [coverType, setCoverType] = useState<"image" | "video">("image");
@@ -80,6 +89,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     setForm(blankProject());
     setCoverType("image");
     setYouTubeUrl("");
+    setShowConfirm(false);
     setIsModalOpen(true);
   };
 
@@ -89,11 +99,13 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     const hasVideo = Boolean(project.video?.url);
     setCoverType(project.coverType ?? (hasVideo ? "video" : "image"));
     setYouTubeUrl(project.video?.source === "youtube" ? project.video.url : "");
+    setShowConfirm(false);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setShowConfirm(false);
     setEditing(null);
     setFileName("");
     setYouTubeUrl("");
@@ -150,8 +162,8 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     return data.secure_url as string;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setLoading(true);
     try {
       if (!stripHtml(form.description).trim()) {
@@ -201,7 +213,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       console.log("[submit] guardado en Firebase OK");
       const updated = await getProjectsOnce();
       onProjectsChange(updated);
-      closeModal();
+      setShowConfirm(false);
     } catch (err) {
       console.error("[submit] error guardando proyecto:", err);
       alert("Error guardando proyecto");
@@ -307,7 +319,9 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
 
   return (
     <div>
-      <div style={{
+      {!isModalOpen && (
+      <>
+        <div style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -409,9 +423,11 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
         +
       </button>
 
+      </>)}
+
       {isModalOpen && (
-        <div className="admin-editor-overlay" onClick={closeModal}>
-          <form className="admin-editor" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+        <>
+          <form className="admin-editor" onSubmit={(e) => { e.preventDefault(); setShowConfirm(true); }}>
             <div className="admin-editor-form">
               <div className="admin-editor-header">
                 <div>
@@ -428,14 +444,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     className="admin-editor-save"
                   >
                     {loading ? "Guardando..." : editing ? "Guardar cambios" : "Crear proyecto"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="admin-editor-close"
-                    aria-label="Cerrar"
-                  >
-                    ×
                   </button>
                 </div>
               </div>
@@ -659,17 +667,38 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 </div>
               </div>
             </div>
+          </form>
 
-            <div className="admin-editor-preview">
-              <div className="admin-editor-preview-bar">
-                <span>Vista previa (público)</span>
-              </div>
-              <div className="admin-editor-preview-scroll">
-                <ProjectLivePreview project={form} />
+          {showConfirm && (
+            <div
+              className="admin-confirm-overlay"
+              onClick={() => !loading && setShowConfirm(false)}
+            >
+              <div className="admin-confirm" onClick={(e) => e.stopPropagation()}>
+                <h3>¿Guardar cambios?</h3>
+                <p>Se guardarán los datos del proyecto en Firebase. El editor quedará abierto para seguir editando.</p>
+                <div className="admin-confirm-actions">
+                  <button
+                    type="button"
+                    className="admin-editor-cancel"
+                    onClick={() => setShowConfirm(false)}
+                    disabled={loading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-editor-save"
+                    onClick={() => handleSubmit()}
+                    disabled={loading}
+                  >
+                    {loading ? "Guardando..." : "Confirmar y guardar"}
+                  </button>
+                </div>
               </div>
             </div>
-          </form>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
