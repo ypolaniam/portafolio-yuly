@@ -642,12 +642,22 @@ section:nth-of-type(even) {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: min(420px, 85vw);
+  /* Cap to 40vw so the absolutely-positioned photo never gets wider than the
+     right half of the hero and overlaps the text column on tablet/desktop. */
+  max-width: min(420px, 40vw);
   aspect-ratio: 3/4;
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-xl);
   will-change: transform;
+}
+
+/* Below the 2-column breakpoint the photo is hidden anyway, but keep it from
+   ever overlapping the text if it is shown. */
+@media (max-width: 900px) {
+  .hero-photo {
+    max-width: min(340px, 42vw);
+  }
 }
 
 .hero-visual {
@@ -1143,9 +1153,17 @@ section:nth-of-type(even) {
     min-height: 220px;
   }
 
+  /* Reset the inline flex ratios set by the React grid so cards stack full
+     width on mobile regardless of wide/narrow sizing from desktop. */
+  .projects-row .project-card {
+    flex: 1 1 auto !important;
+    width: 100%;
+    min-width: 0;
+  }
+
   .projects-row.wide-left .project-card,
   .projects-row.narrow-left .project-card {
-    flex: 1 1 100% !important;
+    flex: 1 1 auto !important;
   }
 }
 
@@ -2156,6 +2174,10 @@ section:nth-of-type(even) {
   transform: translateX(-50%) scaleY(0);
   transform-origin: top center;
   will-change: transform;
+  /* Keep the line above the timeline cards (which have a solid background and,
+     on mobile, span the full width) so it stays visually connected to the dots
+     instead of being hidden behind the cards. */
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -2218,6 +2240,11 @@ section:nth-of-type(even) {
 @media (max-width: 768px) {
   .timeline-items {
     gap: 2rem;
+    /* Remove the horizontal padding so the timeline items line up with the
+       .timeline container that holds the center line. Without this, the items
+       (and their dots) are inset by 1rem while the line is not, which pushes
+       the dots ~16px to the right of the line on mobile. */
+    padding: 0;
   }
 
   .timeline-item:nth-child(odd),
@@ -2239,7 +2266,7 @@ section:nth-of-type(even) {
   border: 3px solid var(--color-primary);
   transform: translateX(-50%) scale(0);
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 2;
+  z-index: 3;
   box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
 }
 
@@ -2569,6 +2596,59 @@ section:nth-of-type(even) {
   font-size: 0.75rem;
   line-height: 1.5;
   color: #64748B;
+}
+
+/* ===== HELP TOOLTIP (info icon) ===== */
+.help-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.4rem;
+  color: #64748B;
+  cursor: help;
+  outline: none;
+  vertical-align: middle;
+}
+
+.help-tip svg {
+  width: 14px;
+  height: 14px;
+}
+
+.help-tip:hover,
+.help-tip:focus {
+  color: #8B5CF6;
+}
+
+.help-tip-bubble {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: max-content;
+  max-width: 260px;
+  padding: 0.5rem 0.75rem;
+  background: #11101D;
+  color: #CBD5E1;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  font-weight: 400;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  z-index: 50;
+}
+
+.help-tip:hover .help-tip-bubble,
+.help-tip:focus .help-tip-bubble,
+.help-tip:focus-within .help-tip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .admin-select {

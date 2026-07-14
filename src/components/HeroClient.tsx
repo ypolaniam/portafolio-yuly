@@ -84,9 +84,26 @@ export default function HeroClient() {
       const grid = section.querySelector(".grid-overlay");
       const indicator = section.querySelector(".scroll-indicator");
 
+      // On mobile the hero visual (photo + decorative blobs) is intentionally
+      // hidden via CSS. The parallax below writes inline styles, which would
+      // override that media query and make the photo/blobs show through behind
+      // the text. Skip it on small screens and clear any inline styles so CSS
+      // keeps control of the hidden state.
+      const isDesktop = () => window.matchMedia("(min-width: 769px)").matches;
+
       if (visual) {
         scroll(
           (progress) => {
+            if (!isDesktop()) {
+              visual.style.opacity = "";
+              visual.style.transform = "";
+              if (content) {
+                content.style.opacity = "";
+                content.style.transform = "";
+              }
+              return;
+            }
+
             const y = progress * 150;
             const opacity = 1 - progress * 0.5;
             visual.style.transform = `translateY(${y}px)`;
@@ -104,6 +121,11 @@ export default function HeroClient() {
       if (grid) {
         scroll(
           (progress) => {
+            if (!isDesktop()) {
+              grid.style.opacity = "";
+              grid.style.transform = "";
+              return;
+            }
             grid.style.transform = `translateY(${progress * -100}px) rotate(${progress * 5}deg)`;
             grid.style.opacity = String(0.03 - progress * 0.02);
           },
@@ -139,6 +161,38 @@ export default function HeroClient() {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         section.querySelectorAll(".mesh-blob, .glass-panel").forEach((el) => {
           el.style.animation = "none";
+        });
+      }
+
+      // Header reveal: looks like "Yuly Polanía" continues from the intro into
+      // the navbar. (Ported from the original Hero.astro script, which was lost
+      // when the home switched to this React client component.)
+      const header = document.querySelector(".site-header");
+      const logo = document.querySelector(".logo");
+      const navLinks = document.querySelectorAll(".nav-link");
+
+      if (header) {
+        header.classList.add("header-visible");
+
+        if (logo) {
+          logo.style.opacity = "0";
+          logo.style.transform = "translateY(-10px)";
+          logo.style.filter = "blur(6px)";
+          animate(
+            logo,
+            { opacity: [0, 1], y: [-10, 0], filter: ["blur(6px)", "blur(0px)"] },
+            { duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.4 }
+          );
+        }
+
+        navLinks.forEach((link, i) => {
+          link.style.opacity = "0";
+          link.style.transform = "translateY(-8px)";
+          animate(
+            link,
+            { opacity: [0, 1], y: [-8, 0] },
+            { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.55 + i * 0.07 }
+          );
         });
       }
     };

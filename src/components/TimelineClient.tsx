@@ -39,7 +39,8 @@ export default function TimelineClient() {
     if (timelineLine) {
       scroll(
         (progress) => {
-          timelineLine.style.transform = `scaleY(${progress})`;
+          // Keep the centering translateX(-50%) from CSS; only animate scaleY.
+          timelineLine.style.transform = `translateX(-50%) scaleY(${progress})`;
         },
         { target: section, offset: ["start start", "end end"] }
       );

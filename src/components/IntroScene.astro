@@ -1,9 +1,5 @@
 ---
-interface Props {
-  onComplete?: () => void;
-}
-
-const { onComplete } = Astro.props;
+interface Props {}
 ---
 
 <div class="intro-scene" aria-hidden="true">
@@ -36,7 +32,6 @@ const { onComplete } = Astro.props;
     scene?.remove();
     root.style.setProperty('--intro-opacity', '0');
     body.style.overflow = '';
-    if (onComplete) onComplete();
     throw new Error('IntroScene skipped due to hash navigation');
   }
 
@@ -146,7 +141,6 @@ const { onComplete } = Astro.props;
           scene.remove();
           root.style.setProperty('--intro-opacity', '0');
           body.style.overflow = '';
-          if (onComplete) onComplete();
         });
       });
     });

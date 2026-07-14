@@ -18,6 +18,7 @@ import {
 import { upsertProject, removeProject, reorderProjects, setProjectVisibility, getProjectsOnce } from "../../lib/projects";
 import SortableProjectItem from "../SortableProjectItem";
 import ProjectLivePreview from "../ProjectLivePreview";
+import HelpTip from "./HelpTip";
 
 const COLORS = {
   bg: "#0A0A0F",
@@ -367,7 +368,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
 
               <div className="admin-editor-fields">
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-title">Título *</label>
+                  <label className="admin-field-label" htmlFor="project-title">Título * <HelpTip text="Nombre del proyecto que verán los visitantes en la portada y el detalle." /></label>
                   <input
                     id="project-title"
                     placeholder="Ej: Marca personal Pola Mola"
@@ -378,7 +379,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   />
                 </div>
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-slug">URL del proyecto *</label>
+                  <label className="admin-field-label" htmlFor="project-slug">URL del proyecto * <HelpTip text="Identificador en la dirección (ej: /trabajo/mi-proyecto). Se genera solo a partir del título si lo dejás vacío. Usá guiones y minúsculas." /></label>
                   <input
                     id="project-slug"
                     placeholder="Ej: marca-personal-pola-mola"
@@ -387,11 +388,10 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     required
                     className="admin-field"
                   />
-                  <p className="admin-field-help">Se genera solo si lo dejás vacío. Usá guiones y minúsculas.</p>
                 </div>
                 <div className="admin-field-row">
                   <div className="admin-field-col">
-                    <label className="admin-field-label" htmlFor="project-category">Categoría *</label>
+                    <label className="admin-field-label" htmlFor="project-category">Categoría * <HelpTip text="Filtro que aparece en el sitio público. Elegí una categoría existente (se autocompleta) o escribí una nueva." /></label>
                     <input
                       id="project-category"
                       list="project-category-list"
@@ -403,7 +403,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     />
                   </div>
                   <div className="admin-field-col">
-                    <label className="admin-field-label" htmlFor="project-year">Año *</label>
+                    <label className="admin-field-label" htmlFor="project-year">Año * <HelpTip text="Año de realización del proyecto (se muestra en la ficha)." /></label>
                     <input
                       id="project-year"
                       placeholder="Ej: 2025"
@@ -414,16 +414,13 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     />
                   </div>
                 </div>
-                <p className="admin-field-help">
-                  Se usa como filtro en el sitio público. Elegí una categoría existente o escribí una nueva.
-                </p>
                 <datalist id="project-category-list">
                   {existingCategories.map((cat) => (
                     <option key={cat} value={cat} />
                   ))}
                 </datalist>
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-description">Descripción *</label>
+                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público." /></label>
                   <textarea
                     id="project-description"
                     placeholder="Contá de qué se trata el proyecto..."
@@ -435,7 +432,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   />
                 </div>
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-metrics">Métricas (opcional)</label>
+                  <label className="admin-field-label" htmlFor="project-metrics">Métricas (opcional) <HelpTip text="Logros cuantificables. Separados por coma; cada uno se muestra como una tarjeta de resultado en el detalle." /></label>
                   <input
                     id="project-metrics"
                     placeholder="Ej: +40% conversión, 12k alcance"
@@ -443,10 +440,9 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     onChange={(e) => setForm({ ...form, metrics: e.target.value })}
                     className="admin-field"
                   />
-                  <p className="admin-field-help">Separalas con coma. Cada una se muestra como una tarjeta de resultado.</p>
                 </div>
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-size">Tamaño en la portada</label>
+                  <label className="admin-field-label" htmlFor="project-size">Tamaño en la portada <HelpTip text="Cuánto espacio ocupa la tarjeta en la portada pública: grande (ancha), mediano o pequeño (estrecha)." /></label>
                   <select
                     id="project-size"
                     value={form.size || "medium"}
@@ -457,11 +453,10 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                     <option value="medium">Mediano</option>
                     <option value="small">Pequeño</option>
                   </select>
-                  <p className="admin-field-help">Define cuánto espacio ocupa la tarjeta en la portada pública.</p>
                 </div>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Imagen principal del proyecto</label>
+                  <label className="admin-field-label">Imagen principal del proyecto <HelpTip text="Foto destacada que se muestra al abrir el proyecto y en su tarjeta de la portada." /></label>
                   <input
                     id="project-image"
                     type="file"
@@ -487,7 +482,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
 
                 <div className="admin-field-group">
                   <div className="admin-gallery-head">
-                    <label className="admin-field-label">Galería de imágenes</label>
+                    <label className="admin-field-label">Galería de imágenes <HelpTip text="Imágenes adicionales que se muestran en el detalle público con un visor ampliable (lightbox)." /></label>
                     <span className="admin-gallery-count">{(form.gallery ?? []).length} imágenes</span>
                   </div>
                   {(form.gallery ?? []).length > 0 && (
