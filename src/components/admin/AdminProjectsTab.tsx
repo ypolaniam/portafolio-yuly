@@ -530,37 +530,6 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 </datalist>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Imagen principal del proyecto <HelpTip text="Foto destacada que se muestra al abrir el proyecto y en su tarjeta de la portada." /></label>
-                  <input
-                    id="project-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-                  <label htmlFor="project-image" className="admin-gallery-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                    {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
-                  </label>
-                  <input
-                    placeholder="O pegá una URL directamente"
-                    value={form.image}
-                    onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); setCoverPreview(""); }}
-                    className="admin-field"
-                  />
-                  {(coverPreviewUrl || form.image) && (
-                    <div className="admin-cover-preview">
-                      <img src={coverPreviewUrl || form.image} alt="Vista previa de la imagen principal" />
-                      <span className="admin-cover-preview-label">Vista previa</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="admin-field-group">
                   <label className="admin-field-label">Portada del proyecto <HelpTip text="Elegí la imagen principal o un video de YouTube como portada. La imagen también se usa como póster del video." /></label>
                   <div className="admin-radio-row">
                     <label className={`admin-radio ${coverType === "image" ? "active" : ""}`}>
@@ -582,37 +551,69 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                       Video (YouTube)
                     </label>
                   </div>
-                </div>
 
-                {coverType === "video" && (
-                  <div className="admin-field-group admin-video-block">
-                    <input
-                      placeholder="https://youtu.be/ID o https://youtube.com/watch?v=ID"
-                      value={youTubeUrl}
-                      onChange={(e) => handleYouTubeChange(e.target.value)}
-                      className="admin-field"
-                    />
-                    {youTubeUrl && !parseYouTubeId(youTubeUrl) && (
-                      <p className="admin-gallery-hint" style={{ color: "#EF4444" }}>
-                        URL de YouTube no válida.
+                  {coverType === "image" && (
+                    <>
+                      <input
+                        id="project-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        style={{ display: "none" }}
+                      />
+                      <label htmlFor="project-image" className="admin-gallery-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+                      </label>
+                      <input
+                        placeholder="O pegá una URL directamente"
+                        value={form.image}
+                        onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); setCoverPreview(""); }}
+                        className="admin-field"
+                      />
+                      {(coverPreviewUrl || form.image) && (
+                        <div className="admin-cover-preview">
+                          <img src={coverPreviewUrl || form.image} alt="Vista previa de la imagen principal" />
+                          <span className="admin-cover-preview-label">Vista previa</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {coverType === "video" && (
+                    <div className="admin-video-block">
+                      <input
+                        placeholder="https://youtu.be/ID o https://youtube.com/watch?v=ID"
+                        value={youTubeUrl}
+                        onChange={(e) => handleYouTubeChange(e.target.value)}
+                        className="admin-field"
+                      />
+                      {youTubeUrl && !parseYouTubeId(youTubeUrl) && (
+                        <p className="admin-gallery-hint" style={{ color: "#EF4444" }}>
+                          URL de YouTube no válida.
+                        </p>
+                      )}
+                      {parseYouTubeId(youTubeUrl) && (
+                        <div className="admin-scrubber-preview">
+                          <iframe
+                            src={getYouTubeEmbedUrl(parseYouTubeId(youTubeUrl) ?? "")}
+                            title="YouTube preview"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            frameBorder="0"
+                          />
+                        </div>
+                      )}
+                      <p className="admin-gallery-hint">
+                        En la portada el video se reproduce en bucle. La imagen principal queda como póster.
                       </p>
-                    )}
-                    {parseYouTubeId(youTubeUrl) && (
-                      <div className="admin-scrubber-preview">
-                        <iframe
-                          src={getYouTubeEmbedUrl(parseYouTubeId(youTubeUrl) ?? "")}
-                          title="YouTube preview"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          frameBorder="0"
-                        />
-                      </div>
-                    )}
-                    <p className="admin-gallery-hint">
-                      En la portada el video se reproduce en bucle. La imagen principal queda como póster.
-                    </p>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="admin-field-group">
                   <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>

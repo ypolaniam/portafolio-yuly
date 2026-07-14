@@ -2741,6 +2741,7 @@ section:nth-of-type(even) {
   position: relative;
   width: 100%;
   max-width: 380px;
+  aspect-ratio: 16 / 9;
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -2750,7 +2751,7 @@ section:nth-of-type(even) {
 .admin-cover-preview img {
   display: block;
   width: 100%;
-  max-height: 220px;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -3007,9 +3008,11 @@ section:nth-of-type(even) {
 .admin-scrubber-preview {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: 0.65rem;
+  max-width: 380px;
+  border-radius: 0.75rem;
   overflow: hidden;
-  background: #0A0A0F;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 15, 0.6);
 }
 
 .admin-scrubber-preview video,
