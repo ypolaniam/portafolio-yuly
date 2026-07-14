@@ -61,6 +61,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
 
       await setAbout(form);
       onAboutChange(form);
+      onShowSnackbar?.("Datos de Sobre mí guardados correctamente");
     } catch (err) {
       console.error(err);
       onShowSnackbar?.("Error guardando datos de Sobre mí", "error");

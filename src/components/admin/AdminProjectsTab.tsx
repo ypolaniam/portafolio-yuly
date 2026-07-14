@@ -209,7 +209,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       });
       const droppedSections = (form.sections ?? []).length - cleanedSections.length;
       if (droppedSections > 0) {
-        console.warn(`[submit] se omitieron ${droppedSections} sección(es) incompletas`);
+        onShowSnackbar?.(`Se omitieron ${droppedSections} sección(es) incompletas`, "error");
       }
 
       const payload: Project = {
@@ -225,6 +225,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
       const updated = await getProjectsOnce();
       onProjectsChange(updated);
       setShowConfirm(false);
+      onShowSnackbar?.("Proyecto guardado correctamente");
     } catch (err) {
       console.error("[submit] error guardando proyecto:", err);
       onShowSnackbar?.("Error guardando proyecto", "error");

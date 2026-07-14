@@ -122,6 +122,7 @@ export default function AdminPanel() {
       if (data?.projects) setProjects(data.projects);
     }, (err) => {
       console.error("[AdminPanel] onSnapshot error:", err);
+      showSnackbar("Error de sincronización con la base de datos", "error");
     });
     return () => unsub();
   }, [user]);
@@ -140,6 +141,10 @@ export default function AdminPanel() {
   const handleLogout = async () => {
     if (!auth) return;
     await signOut(auth);
+    showSnackbar("Sesión cerrada correctamente", "success");
+    setEmail("");
+    setPassword("");
+    setShowPassword(false);
   };
 
   const logoutHandlerRef = useRef(handleLogout);

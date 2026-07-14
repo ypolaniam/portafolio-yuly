@@ -91,6 +91,7 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
       const updated = await getTimelineOnce();
       onTimelineChange(updated);
       closeModal();
+      onShowSnackbar?.("Item de experiencia guardado correctamente");
     } catch (err) {
       console.error(err);
       onShowSnackbar?.("Error guardando item de experiencia", "error");
