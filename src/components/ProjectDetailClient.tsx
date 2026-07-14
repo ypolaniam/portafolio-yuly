@@ -3,6 +3,7 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { getOptimizedImageUrl } from "../lib/cloudinary";
 import type { Project } from "../types/project";
+import { sanitizeHtml } from "../lib/html";
 import ProjectCarousel from "./ProjectCarousel.tsx";
 import Lightbox from "./Lightbox.tsx";
 import ProjectCoverMedia from "./ProjectCoverMedia.tsx";
@@ -86,7 +87,10 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
 
       <div className="reveal" style={{ transitionDelay: "300ms" }}>
         <div className="project-detail-body">
-          <p className="project-lead">{project.description}</p>
+          <div
+            className="project-lead"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
+          />
 
           <div className="project-meta">
             <div className="meta-item">
@@ -122,16 +126,6 @@ export default function ProjectDetailClient({ initialSlug, initialProject }: { i
             </div>
           )}
 
-          <div className="project-description">
-            <p>
-              Este proyecto representó un desafío único al equilibrar estética con funcionalidad avanzada.
-              Se trabajó en colaboración con un equipo multidisciplinario para garantizar coherencia entre la identidad visual y la experiencia final.
-            </p>
-            <p>
-              El proceso incluyó investigación de usuarios, wireframing iterativo, prototipado de alta fidelidad y validación mediante pruebas de usabilidad.
-              El resultado es una experiencia fluida que reduce la fricción cognitiva y mejora las métricas de conversión.
-            </p>
-          </div>
         </div>
       </div>
 

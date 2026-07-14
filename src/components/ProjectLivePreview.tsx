@@ -1,5 +1,6 @@
 import type { Project } from "../types/project";
 import { getOptimizedImageUrl } from "../lib/cloudinary";
+import { sanitizeHtml } from "../lib/html";
 import ProjectCoverMedia from "./ProjectCoverMedia";
 
 interface ProjectLivePreviewProps {
@@ -27,9 +28,10 @@ export default function ProjectLivePreview({ project }: ProjectLivePreviewProps)
       </figure>
 
       <div className="project-detail-body">
-        <p className="project-lead">
-          {project.description || "La descripción del proyecto aparecerá aquí..."}
-        </p>
+        <div
+          className="project-lead"
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description || "La descripción del proyecto aparecerá aquí...") }}
+        />
 
         <div className="project-meta">
           <div className="meta-item">

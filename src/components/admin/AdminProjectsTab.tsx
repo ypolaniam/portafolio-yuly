@@ -19,6 +19,7 @@ import {
 import { upsertProject, removeProject, reorderProjects, setProjectVisibility, getProjectsOnce } from "../../lib/projects";
 import SortableProjectItem from "../SortableProjectItem";
 import ProjectLivePreview from "../ProjectLivePreview";
+import RichTextEditor from "./RichTextEditor";
 import HelpTip from "./HelpTip";
 
 const COLORS = {
@@ -576,15 +577,10 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   ))}
                 </datalist>
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público." /></label>
-                  <textarea
-                    id="project-description"
-                    placeholder="Contá de qué se trata el proyecto..."
+                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>
+                  <RichTextEditor
                     value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    required
-                    className="admin-field"
-                    style={{ minHeight: "120px", resize: "vertical" }}
+                    onChange={(html) => setForm({ ...form, description: html })}
                   />
                 </div>
                 <div className="admin-field-group">
