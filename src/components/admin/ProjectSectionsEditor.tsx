@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import type { ProjectSection, SectionType, SectionSize } from "../../types/project";
 import {
   DndContext,

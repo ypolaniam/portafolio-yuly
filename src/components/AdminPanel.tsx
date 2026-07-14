@@ -229,19 +229,6 @@ export default function AdminPanel() {
 
   return (
     <>
-      {!authReady && (
-        <div style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: `${COLORS.bg}`,
-          color: COLORS.textMuted,
-          fontSize: "0.875rem",
-        }}>
-          Cargando...
-        </div>
-      )}
       {authReady && !user && (
         <div style={{
           minHeight: "100vh",

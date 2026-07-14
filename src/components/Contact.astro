@@ -1,12 +1,10 @@
 ---
-import MotionWrapper from "./MotionWrapper.astro";
-
 const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
 ---
 
 <section id="contacto" class="contact" aria-labelledby="contacto-title">
   <div class="contact-inner">
-    <MotionWrapper delay={100}>
+    <div class="motion-reveal" data-delay="100">
       <header class="contact-header">
         <p class="hero-overline reveal-text" data-reveal="word">Contacto</p>
           <h2 id="contacto-title" class="section-title reveal">
@@ -16,9 +14,9 @@ const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
           ¿Tienes una idea en mente? Me encantaría escucharte.
         </p>
       </header>
-    </MotionWrapper>
+    </div>
 
-    <MotionWrapper delay={250}>
+    <div class="motion-reveal" data-delay="250">
       <div class="contact-grid">
          <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
             <input type="hidden" name="access_key" value={web3formsKey} />
@@ -121,9 +119,21 @@ const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
           </div>
         </div>
       </div>
-    </MotionWrapper>
+    </div>
   </div>
 </section>
+
+<script type="module">
+  import { animate, inView } from "motion";
+
+  document.querySelectorAll('.motion-reveal:not(.animated)').forEach(el => {
+    const delay = parseInt(el.dataset.delay || '0', 10);
+    inView(el, () => {
+      el.classList.add('animated');
+      animate(el, { opacity: [0, 1], y: [30, 0] }, { duration: 0.5, delay: delay / 1000, ease: [0.16, 1, 0.3, 1] });
+    }, { once: true, margin: "-50px" });
+  });
+</script>
 
 <style>
   .contact-grid {

@@ -1,10 +1,5 @@
 import type { TimelineItem } from "../types/timeline";
 
-export const timelineCategories = [
-  { id: "all", label: "Todo" },
-  { id: "experience", label: "Experiencia" },
-];
-
 export const initialTimeline: TimelineItem[] = [
   {
     id: "freelance-actual",
