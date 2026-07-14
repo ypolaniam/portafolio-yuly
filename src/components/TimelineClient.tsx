@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import type { TimelineItem } from "../types/timeline";
 import { initialTimeline } from "../data/timeline";
 import { animate, inView, scroll } from "motion";
+import { sanitizeHtml } from "../lib/html";
 
 export default function TimelineClient() {
   const [timeline, setTimeline] = useState<TimelineItem[]>(initialTimeline);
@@ -120,7 +121,9 @@ export default function TimelineClient() {
 
                 {item.title && <h3 className="timeline-title">{item.title}</h3>}
                 {item.institution && <p className="timeline-institution">{item.institution}</p>}
-                {item.description && <p className="timeline-description">{item.description}</p>}
+                {item.description && (
+                  <div className="timeline-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                )}
 
                 {item.tags && (
                   <div className="timeline-tags">

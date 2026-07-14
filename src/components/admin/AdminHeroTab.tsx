@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Hero } from "../../types/hero";
 import { setHero } from "../../lib/hero";
+import RichTextEditor from "./RichTextEditor";
+import { stripHtml } from "../../lib/html";
 
 const COLORS = {
   bg: "#0A0A0F",
@@ -57,6 +59,12 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     e.preventDefault();
     setLoading(true);
     try {
+      if (!stripHtml(form.subtitle).trim()) {
+        alert("El subtítulo es requerido");
+        setLoading(false);
+        return;
+      }
+
       let photo = form.photo;
 
       const fileInput = document.getElementById("hero-photo") as HTMLInputElement | null;
@@ -67,6 +75,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
       const payload = { ...form, photo };
       await setHero(payload);
       onHeroChange(payload);
+      alert("Cambios de Inicio guardados correctamente.");
       setPreviewUrl(null);
       setFileName("");
     } catch (err) {
@@ -188,11 +197,10 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
           <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
             Subtítulo
           </label>
-          <textarea
+          <RichTextEditor
+            compact
             value={form.subtitle}
-            onChange={(e) => update({ subtitle: e.target.value })}
-            required
-            style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+            onChange={(html) => update({ subtitle: html })}
           />
         </div>
 

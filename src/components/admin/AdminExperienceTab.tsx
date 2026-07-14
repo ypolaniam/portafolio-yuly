@@ -17,6 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { upsertTimelineItem, removeTimelineItem, migrateTimeline, reorderTimeline, setTimelineItemVisibility, getTimelineOnce } from "../../lib/timeline";
 import SortableTimelineItem from "./SortableTimelineItem";
+import RichTextEditor from "./RichTextEditor";
 
 const COLORS = {
   bg: "#0A0A0F",
@@ -370,11 +371,10 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
                   style={inputStyle}
                 />
               </div>
-              <textarea
-                placeholder="Descripción"
+              <RichTextEditor
+                compact
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+                onChange={(html) => setForm({ ...form, description: html })}
               />
               <input
                 placeholder="Tags (separados por coma)"

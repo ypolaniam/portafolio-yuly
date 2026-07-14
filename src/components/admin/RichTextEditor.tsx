@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 interface RichTextEditorProps {
   value: string;
   onChange?: (html: string) => void;
+  compact?: boolean;
 }
 
 const COLORS = {
@@ -75,7 +76,7 @@ function isEmptyHtml(html: string): boolean {
   return !html.replace(/<[^>]*>/g, "").trim();
 }
 
-export default function RichTextEditor({ value, onChange }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, compact = false }: RichTextEditorProps) {
   const extensions = useMemo(
     () => [
       StarterKit.configure({
@@ -104,7 +105,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     editorProps: {
       attributes: {
         class: "rich-text-editor-content",
-        style: `min-height: 160px; padding: 1rem; outline: none; color: ${COLORS.text}; font-size: 0.9375rem; line-height: 1.7;`,
+        style: `min-height: ${compact ? "90px" : "160px"}; padding: 1rem; outline: none; color: ${COLORS.text}; font-size: 0.9375rem; line-height: 1.7;`,
       },
     },
     onUpdate: ({ editor }) => {
@@ -121,6 +122,19 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
       editor.off("transaction", update);
     };
   }, [editor]);
+
+  // Sync external `value` changes back into the editor. Tiptap only reads
+  // `value` once at creation, so when the saved data arrives after mount
+  // (or the parent resets the form) the editor would keep showing stale
+  // content. We only push when it actually differs from what's on screen
+  // to avoid clobbering the caret while the user is typing.
+  useEffect(() => {
+    if (!editor) return;
+    const current = isEmptyHtml(editor.getHTML()) ? "" : editor.getHTML();
+    if (value !== current) {
+      editor.commands.setContent(prepareContent(value || ""));
+    }
+  }, [editor, value]);
 
   if (!editor) {
     return null;
@@ -176,57 +190,77 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           isActive={editor.isActive("strike")}
           onClick={() => editor.chain().focus().toggleStrike().run()}
         />
-        <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
-        <ToolbarButton
-          title="Subtítulo (H2)"
-          label="H2"
-          isActive={editor.isActive("heading", { level: 2 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        />
-        <ToolbarButton
-          title="Subtítulo (H3)"
-          label="H3"
-          isActive={editor.isActive("heading", { level: 3 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        />
-        <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
-        <ToolbarButton
-          title="Lista con viñetas"
-          label="•"
-          isActive={editor.isActive("bulletList")}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        />
-        <ToolbarButton
-          title="Lista numerada"
-          label="1."
-          isActive={editor.isActive("orderedList")}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        />
-        <ToolbarButton
-          title="Cita"
-          label="❝"
-          isActive={editor.isActive("blockquote")}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        />
+        {!compact && (
+          <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Subtítulo (H2)"
+            label="H2"
+            isActive={editor.isActive("heading", { level: 2 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Subtítulo (H3)"
+            label="H3"
+            isActive={editor.isActive("heading", { level: 3 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          />
+        )}
+        {!compact && (
+          <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Lista con viñetas"
+            label="•"
+            isActive={editor.isActive("bulletList")}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+          />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Lista numerada"
+            label="1."
+            isActive={editor.isActive("orderedList")}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Cita"
+            label="❝"
+            isActive={editor.isActive("blockquote")}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          />
+        )}
         <ToolbarButton
           title="Enlace"
           label="🔗"
           isActive={editor.isActive("link")}
           onClick={setLink}
         />
-        <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
-        <ToolbarButton
-          title="Deshacer"
-          label="↶"
-          isActive={false}
-          onClick={() => editor.chain().focus().undo().run()}
-        />
-        <ToolbarButton
-          title="Rehacer"
-          label="↷"
-          isActive={false}
-          onClick={() => editor.chain().focus().redo().run()}
-        />
+        {!compact && (
+          <span style={{ width: "1px", alignSelf: "stretch", background: COLORS.border, margin: "0 0.25rem" }} />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Deshacer"
+            label="↶"
+            isActive={false}
+            onClick={() => editor.chain().focus().undo().run()}
+          />
+        )}
+        {!compact && (
+          <ToolbarButton
+            title="Rehacer"
+            label="↷"
+            isActive={false}
+            onClick={() => editor.chain().focus().redo().run()}
+          />
+        )}
       </div>
       <EditorContent editor={editor} />
     </div>

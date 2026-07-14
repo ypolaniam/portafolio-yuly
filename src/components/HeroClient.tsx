@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import type { Hero } from "../types/hero";
 import { initialHero } from "../data/hero";
 import { animate, scroll, inView } from "motion";
+import { sanitizeHtml } from "../lib/html";
 
 export default function HeroClient() {
   const [hero, setHero] = useState<Hero>(initialHero);
@@ -235,7 +236,7 @@ export default function HeroClient() {
             ))}
           </h1>
 
-          <p className="hero-subtitle reveal-item">{hero.subtitle}</p>
+          <div className="hero-subtitle reveal-item" dangerouslySetInnerHTML={{ __html: sanitizeHtml(hero.subtitle) }} />
 
           <div className="hero-actions reveal-item">
             <a href={hero.ctaPrimary.href} className="btn-primary magnetic">

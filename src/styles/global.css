@@ -753,6 +753,28 @@ section:nth-of-type(even) {
   margin: 0;
 }
 
+.hero-subtitle p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.hero-subtitle p + p {
+  margin-top: 0.75rem;
+}
+
+.hero-subtitle p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.hero-subtitle p + p {
+  margin-top: 0.75rem;
+}
+
 .hero-stats {
   display: flex;
   gap: 3rem;
@@ -2151,6 +2173,7 @@ section:nth-of-type(even) {
   color: var(--color-text-light);
   line-height: 1.8;
   max-width: 62ch;
+  margin: 0;
 }
 
 .section-subtitle {
@@ -2252,6 +2275,20 @@ section:nth-of-type(even) {
   line-height: 1.6;
 }
 
+.education-detail p {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
+.education-detail p {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
 .values-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -2292,6 +2329,7 @@ section:nth-of-type(even) {
   font-size: 0.9375rem;
   color: var(--color-text-light);
   line-height: 1.7;
+  margin: 0;
 }
 
 /* ===== TIMELINE SECTION (from Timeline.astro) ===== */
@@ -2517,6 +2555,13 @@ section:nth-of-type(even) {
   color: var(--color-text-muted);
   line-height: 1.7;
   margin-bottom: 1rem;
+}
+
+.timeline-description p {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+  line-height: inherit;
 }
 
 .timeline-tags {

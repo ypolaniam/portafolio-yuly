@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { About } from "../../types/about";
 import { setAbout } from "../../lib/about";
+import RichTextEditor from "./RichTextEditor";
+import { stripHtml } from "../../lib/html";
 
 const COLORS = {
   bg: "#0A0A0F",
@@ -35,6 +37,27 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
     e.preventDefault();
     setLoading(true);
     try {
+      const emptyParagraph = form.intro.findIndex((p) => !stripHtml(p).trim());
+      if (emptyParagraph !== -1) {
+        alert("Todos los párrafos de la introducción son requeridos");
+        setLoading(false);
+        return;
+      }
+
+      const emptyValue = form.values.findIndex((v) => !stripHtml(v.description).trim());
+      if (emptyValue !== -1) {
+        alert("La descripción de cada valor es requerida");
+        setLoading(false);
+        return;
+      }
+
+      const emptyEducation = form.education.findIndex((edu) => !stripHtml(edu.detail).trim());
+      if (emptyEducation !== -1) {
+        alert("El detalle de cada formación es requerido");
+        setLoading(false);
+        return;
+      }
+
       await setAbout(form);
       onAboutChange(form);
     } catch (err) {
@@ -133,15 +156,13 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
           </label>
           {form.intro.map((paragraph, idx) => (
             <div key={idx} style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem" }}>
-              <textarea
+              <RichTextEditor
                 value={paragraph}
-                onChange={(e) => {
+                onChange={(html) => {
                   const next = [...form.intro];
-                  next[idx] = e.target.value;
+                  next[idx] = html;
                   update({ intro: next });
                 }}
-                required
-                style={{ ...inputStyle, minHeight: "80px", resize: "vertical", flex: 1 }}
               />
               <button
                 type="button"
@@ -207,16 +228,14 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
                   style={{ ...inputStyle, flex: 2 }}
                 />
               </div>
-              <textarea
+              <RichTextEditor
+                compact
                 value={value.description}
-                onChange={(e) => {
+                onChange={(html) => {
                   const next = [...form.values];
-                  next[idx] = { ...next[idx], description: e.target.value };
+                  next[idx] = { ...next[idx], description: html };
                   update({ values: next });
                 }}
-                placeholder="Descripción"
-                required
-                style={{ ...inputStyle, minHeight: "60px", resize: "vertical" }}
               />
               <button
                 type="button"
@@ -363,16 +382,14 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
                 required
                 style={inputStyle}
               />
-              <textarea
+              <RichTextEditor
+                compact
                 value={edu.detail}
-                onChange={(e) => {
+                onChange={(html) => {
                   const next = [...form.education];
-                  next[idx] = { ...next[idx], detail: e.target.value };
+                  next[idx] = { ...next[idx], detail: html };
                   update({ education: next });
                 }}
-                placeholder="Detalle"
-                required
-                style={{ ...inputStyle, minHeight: "60px", resize: "vertical" }}
               />
               <button
                 type="button"

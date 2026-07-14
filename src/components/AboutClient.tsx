@@ -3,6 +3,7 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { About } from "../types/about";
 import { initialAbout } from "../data/about";
+import { sanitizeHtml } from "../lib/html";
 
 export default function AboutClient() {
   const [about, setAbout] = useState<About>(initialAbout);
@@ -53,7 +54,7 @@ export default function AboutClient() {
             </div>
             <div className="about-intro">
               {about.intro.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
+                <div key={idx} dangerouslySetInnerHTML={{ __html: sanitizeHtml(paragraph) }} />
               ))}
             </div>
           </div>
@@ -69,7 +70,7 @@ export default function AboutClient() {
                     {value.number}
                   </span>
                   <h4 className="reveal-text" data-reveal="word">{value.title}</h4>
-                  <p>{value.description}</p>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(value.description) }} />
                 </article>
               ))}
             </div>
@@ -101,7 +102,7 @@ export default function AboutClient() {
                     </span>
                     <h4 className="reveal-text" data-reveal="word">{edu.title}</h4>
                     <p>{edu.institution}</p>
-                    <p className="education-detail">{edu.detail}</p>
+                    <div className="education-detail" dangerouslySetInnerHTML={{ __html: sanitizeHtml(edu.detail) }} />
                   </article>
                 ))}
               </div>
