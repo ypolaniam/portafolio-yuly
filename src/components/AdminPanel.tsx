@@ -317,6 +317,11 @@ export default function AdminPanel() {
       left: 0,
       right: 0,
       bottom: 0,
+      /* The decorative background circles below are positioned with negative
+         offsets that extend past both edges. With only overflowY set the browser
+         computes overflow-x to "auto" too, which made those off-screen circles
+         create a phantom horizontal scrollbar. Clip X, keep Y scrollable. */
+      overflowX: "hidden",
       overflowY: "auto",
       background: `${COLORS.bg}`,
       color: COLORS.text,
@@ -343,7 +348,7 @@ export default function AdminPanel() {
         pointerEvents: "none",
       }} />
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "2.5rem", position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: "min(100%, 1600px)", margin: "0 auto", padding: "2.5rem", position: "relative", zIndex: 1 }}>
         <div style={headerStyle}>
           <div>
             <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: COLORS.white, letterSpacing: "-0.02em" }}>

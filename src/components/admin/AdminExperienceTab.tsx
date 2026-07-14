@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { TimelineItem } from "../../types/timeline";
 import {
   DndContext,
@@ -285,33 +286,38 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
         +
       </button>
 
-      {isModalOpen && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.7)",
-          backdropFilter: "blur(8px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "1rem",
-          zIndex: 100,
-        }} onClick={closeModal}>
-          <form style={{
-            background: `linear-gradient(180deg, ${COLORS.surface} 0%, ${COLORS.bg} 100%)`,
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "1.25rem",
-            padding: "2.5rem",
-            width: "100%",
-            maxWidth: "560px",
-            maxHeight: "90vh",
-            overflowY: "auto",
+      {isModalOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
             display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-            color: COLORS.text,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-          }} onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1.5rem",
+            /* Rendered via portal on document.body so it escapes the
+               #admin-scroll stacking context (root z-index 1) and sits above
+               the fixed admin header (z-index 100). */
+            zIndex: 2000,
+          }} onClick={closeModal}>
+            <form style={{
+              background: `linear-gradient(180deg, ${COLORS.surface} 0%, ${COLORS.bg} 100%)`,
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "1.25rem",
+              padding: "2rem",
+              width: "100%",
+              maxWidth: "min(92vw, 720px)",
+              maxHeight: "82vh",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              color: COLORS.text,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+            }} onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: COLORS.white, letterSpacing: "-0.02em" }}>
                 {editing ? "Editar experiencia" : "Nueva experiencia"}
@@ -411,8 +417,9 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
               </button>
             </div>
           </form>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
