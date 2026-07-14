@@ -10,39 +10,6 @@ export function getOptimizedImageUrl(url: string, width = 800): string {
   return `https://res.cloudinary.com/${import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width}/${publicId}`;
 }
 
-export function isCloudinaryVideo(url: string): boolean {
-  if (!url) return false;
-  return /\/res\.cloudinary\.com\/[^/]+\/video\/upload\//.test(url);
-}
-
-/**
- * Derives a Cloudinary video URL with optional start/duration trimming.
- * - Home cover (start/duration given): pre-cropped clip `so_<start>,du_<duration>`.
- * - Detail player (no trim): full video, no JS timing needed.
- * Non-Cloudinary video URLs are returned unchanged.
- */
-export function getCloudinaryVideoUrl(
-  url: string,
-  opts: { start?: number; duration?: number; width?: number } = {}
-): string {
-  if (!isCloudinaryVideo(url)) return url;
-
-  const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
-  if (!cloudName) return url;
-
-  const match = url.match(/\/video\/upload\/(?:[^/]+\/)?(.*)$/);
-  if (!match) return url;
-
-  const publicId = match[1].replace(/\.[^.]+$/, "");
-
-  const transforms: string[] = ["f_auto", "q_auto"];
-  if (typeof opts.start === "number" && isFinite(opts.start)) transforms.push(`so_${Math.max(0, Math.round(opts.start))}`);
-  if (typeof opts.duration === "number" && isFinite(opts.duration)) transforms.push(`du_${Math.max(1, Math.round(opts.duration))}`);
-  if (opts.width) transforms.push(`w_${opts.width}`);
-
-  return `https://res.cloudinary.com/${cloudName}/video/upload/${transforms.join(",")}/${publicId}`;
-}
-
 /**
  * Extracts a YouTube video ID from watch/shorten/embed/shorts URLs.
  * Returns null when the URL can't be parsed.

@@ -8,6 +8,25 @@ function getSettingsRef() {
   return doc(db, "settings", "cache");
 }
 
+/**
+ * Firestore rejects `undefined` values anywhere in a document (even nested).
+ * This recursively drops `undefined` fields so payloads like
+ * `{ ..., video: undefined }` serialize cleanly. `null` is preserved.
+ */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((v) => stripUndefined(v)) as unknown as T;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v !== undefined) out[k] = stripUndefined(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
 export async function getProjectsOnce(): Promise<Project[]> {
   const snap = await getDoc(getSettingsRef());
   const data = (snap.data() as { projects?: Project[] } | undefined);
@@ -25,7 +44,7 @@ export async function upsertProject(project: Project): Promise<void> {
     projects.push(next);
   }
 
-  await setDoc(getSettingsRef(), { projects }, { merge: true });
+  await setDoc(getSettingsRef(), { projects: stripUndefined(projects) }, { merge: true });
 }
 
 export async function removeProject(slug: string): Promise<void> {
@@ -65,5 +84,5 @@ export async function reorderProjects(orderedProjects: Project[]): Promise<void>
     ...p,
     createdAt: p.createdAt ?? Date.now(),
   }));
-  await setDoc(getSettingsRef(), { projects: ordered }, { merge: true });
+  await setDoc(getSettingsRef(), { projects: stripUndefined(ordered) }, { merge: true });
 }

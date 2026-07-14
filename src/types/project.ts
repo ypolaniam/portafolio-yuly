@@ -22,10 +22,18 @@ export interface Project {
   size?: "large" | "medium" | "small";
   // Visibility toggle. `undefined` / `true` => visible; `false` => hidden from the public site.
   visible?: boolean;
+  // Internal ordering timestamp (set by the data layer on write).
+  createdAt?: number;
   // Extra images shown in a gallery on the public detail page.
   gallery?: string[];
-  // Optional video cover. When present, the home shows the looping video; the
-  // detail page shows a natural player. Falls back to `image` when absent.
+  // Which media is used as the cover: the static `image` or a `video`.
+  // Stored explicitly so the choice is unambiguous (a project can keep a
+  // video but still show its image as the cover). Falls back to video-when-present
+  // for older records that didn't set this field.
+  coverType?: "image" | "video";
+  // Optional video cover. When present and `coverType === "video"`, the home
+  // shows the looping video; the detail page shows a natural player. Falls back
+  // to `image` when absent or when `coverType === "image"`.
   video?: ProjectVideo;
 }
 
