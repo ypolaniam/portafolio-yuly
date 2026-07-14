@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 
 const ALLOWED_TAGS = [
   "p",
@@ -30,37 +30,14 @@ const PURIFY_CONFIG = {
     /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
 };
 
-function sanitizeOnClient(html: string): string {
-  return DOMPurify.sanitize(html, PURIFY_CONFIG);
-}
-
-// Used during SSR / prerender where there is no DOM (and thus no DOMPurify).
-// Content is admin-authored and self-administered, so this is a pragmatic
-// strip of the most dangerous elements/attributes; the client re-sanitizes on
-// hydration with the full DOMPurify allowlist.
-function sanitizeOnServer(html: string): string {
-  let out = html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<object[\s\S]*?<\/object>/gi, "")
-    .replace(/<embed[\s\S]*?<\/embed>/gi, "")
-    .replace(/<link\b[^>]*>/gi, "")
-    .replace(/<meta\b[^>]*>/gi, "")
-    .replace(/\s(on\w+)\s*=\s*"[^"]*"/gi, "")
-    .replace(/\s(on\w+)\s*=\s*'[^']*'/gi, "")
-    .replace(/\s(on\w+)\s*=\s*[^\s>]+/gi, "")
-    .replace(/(href|src)\s*=\s*"(javascript|data):[^"]*"/gi, '$1="#"')
-    .replace(/(href|src)\s*=\s*'(javascript|data):[^']*'/gi, "$1='#'");
-  return out;
-}
-
+// `isomorphic-dompurify` uses the same DOMPurify implementation on the server
+// (via jsdom) and on the client (via the browser window), so the sanitized
+// output is byte-identical in both environments. This avoids React hydration
+// mismatches in `client:load` components and applies full-strength sanitization
+// everywhere instead of a weaker server-side fallback.
 export function sanitizeHtml(html: string): string {
   if (!html) return "";
-  if (typeof window !== "undefined" && typeof window.document !== "undefined") {
-    return sanitizeOnClient(html);
-  }
-  return sanitizeOnServer(html);
+  return DOMPurify.sanitize(html, PURIFY_CONFIG);
 }
 
 export function stripHtml(html: string): string {

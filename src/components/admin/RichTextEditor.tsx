@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 
 interface RichTextEditorProps {
   value: string;
@@ -17,6 +16,23 @@ const COLORS = {
   textMuted: "#94A3B8",
   primary: "#8B5CF6",
 };
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Tiptap parses `content` as HTML. Legacy plain-text descriptions must be
+// escaped so characters like <, >, & render literally instead of being
+// interpreted as markup. If the value already contains HTML markup (produced
+// by this editor), trust it as-is.
+function prepareContent(value: string): string {
+  if (!value) return "";
+  if (/<[a-z][\s\S]*>/i.test(value)) return value;
+  return escapeHtml(value);
+}
 
 interface ToolbarButtonProps {
   label: string;
@@ -54,18 +70,23 @@ function ToolbarButton({ label, title, isActive, onClick }: ToolbarButtonProps) 
   );
 }
 
+// True when the HTML has no visible text content (only empty tags).
+function isEmptyHtml(html: string): boolean {
+  return !html.replace(/<[^>]*>/g, "").trim();
+}
+
 export default function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const extensions = useMemo(
     () => [
       StarterKit.configure({
         heading: { levels: [2, 3] },
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        HTMLAttributes: {
-          rel: "noopener noreferrer nofollow",
-          target: "_blank",
+        link: {
+          openOnClick: false,
+          autolink: true,
+          HTMLAttributes: {
+            rel: "noopener noreferrer nofollow",
+            target: "_blank",
+          },
         },
       }),
     ],
@@ -78,7 +99,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
 
   const editor = useEditor({
     extensions,
-    content: value || "",
+    content: prepareContent(value || ""),
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -87,7 +108,8 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
       },
     },
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      const html = editor.getHTML();
+      onChange?.(isEmptyHtml(html) ? "" : html);
     },
   });
 

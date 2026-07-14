@@ -17,6 +17,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { upsertProject, removeProject, reorderProjects, setProjectVisibility, getProjectsOnce } from "../../lib/projects";
+import { stripHtml } from "../../lib/html";
 import SortableProjectItem from "../SortableProjectItem";
 import ProjectLivePreview from "../ProjectLivePreview";
 import RichTextEditor from "./RichTextEditor";
@@ -253,6 +254,12 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
     e.preventDefault();
     setLoading(true);
     try {
+      if (!stripHtml(form.description).trim()) {
+        alert("La descripción es requerida");
+        setLoading(false);
+        return;
+      }
+
       const fileInput = document.getElementById("project-image") as HTMLInputElement | null;
       let image = form.image;
 
