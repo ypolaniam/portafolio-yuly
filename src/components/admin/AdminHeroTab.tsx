@@ -100,6 +100,13 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
 
   const titleLines = form.title.join("\n").split("\n");
 
+  const hasHeroData = Boolean(
+    hero.subtitle.trim() ||
+    hero.title.some(Boolean) ||
+    hero.photo.trim() ||
+    hero.stats.length > 0
+  );
+
   const inputStyle: React.CSSProperties = {
     padding: "0.875rem 1rem",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -149,26 +156,27 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: COLORS.white }}>
           Inicio (Hero)
         </h2>
-        <button
-          type="button"
-          onClick={onMigrateHero}
-          disabled={migrationLoading}
-          style={{
-            ...buttonSecondary,
-            opacity: migrationLoading ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
-        >
-          {migrationLoading ? "Migrando..." : "Cargar hero inicial"}
-        </button>
+          {hasHeroData ? null : (
+            <button
+              type="button"
+              onClick={onMigrateHero}
+              disabled={migrationLoading}
+              style={{
+                ...buttonSecondary,
+                opacity: migrationLoading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
+            >
+              {migrationLoading ? "Migrando..." : "Cargar hero inicial"}
+            </button>
+          )}
       </div>
 
       <form onSubmit={handleSubmit} style={{
-        display: "flex",
+        width: "100%",
         flexDirection: "column",
         gap: "1.5rem",
-        maxWidth: "800px",
       }}>
         <div>
           <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>

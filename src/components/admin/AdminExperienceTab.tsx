@@ -60,6 +60,8 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
   const [form, setForm] = useState<TimelineItem>(blankItem());
   const draggingRef = useRef(false);
 
+  const hasTimelineData = timeline.length > 0;
+
   const openCreate = () => {
     setEditing(null);
     setForm(blankItem());
@@ -195,19 +197,21 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
         <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: COLORS.white }}>
           Experiencia
         </h2>
-        <button
-          type="button"
-          onClick={onMigrateTimeline}
-          disabled={migrationLoading}
-          style={{
-            ...buttonSecondary,
-            opacity: migrationLoading ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
-        >
-          {migrationLoading ? "Migrando..." : "Cargar experiencia inicial"}
-        </button>
+          {hasTimelineData ? null : (
+            <button
+              type="button"
+              onClick={onMigrateTimeline}
+              disabled={migrationLoading}
+              style={{
+                ...buttonSecondary,
+                opacity: migrationLoading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
+            >
+              {migrationLoading ? "Migrando..." : "Cargar experiencia inicial"}
+            </button>
+          )}
       </div>
 
       {timeline.length === 0 && (

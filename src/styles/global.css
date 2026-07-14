@@ -2638,7 +2638,7 @@ section:nth-of-type(even) {
 .admin-editor-form {
   flex: 1 1 auto;
   width: 100%;
-  max-width: 860px;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
   overflow: visible;

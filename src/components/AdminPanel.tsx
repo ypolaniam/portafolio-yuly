@@ -434,7 +434,7 @@ export default function AdminPanel() {
             pointerEvents: "none",
           }} />
 
-          <div style={{ width: "100%", maxWidth: "min(100%, 1600px)", margin: "0 auto", padding: "2.5rem", position: "relative", zIndex: 1 }}>
+          <div style={{ width: "100%", padding: "2.5rem", position: "relative", zIndex: 1 }}>
             <div style={headerStyle}>
               <div>
                 <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: COLORS.white, letterSpacing: "-0.02em" }}>

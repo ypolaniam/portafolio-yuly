@@ -34,6 +34,14 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
 
   const update = (patch: Partial<About>) => setForm((prev) => ({ ...prev, ...patch }));
 
+  const hasAboutData = Boolean(
+    about.title.trim() ||
+    about.intro.some(Boolean) ||
+    about.values.length > 0 ||
+    about.skills.length > 0 ||
+    about.education.length > 0
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -119,26 +127,27 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: COLORS.white }}>
           Sobre mí
         </h2>
-        <button
-          type="button"
-          onClick={onMigrateAbout}
-          disabled={migrationLoading}
-          style={{
-            ...buttonSecondary,
-            opacity: migrationLoading ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
-        >
-          {migrationLoading ? "Migrando..." : "Cargar about inicial"}
-        </button>
+          {hasAboutData ? null : (
+            <button
+              type="button"
+              onClick={onMigrateAbout}
+              disabled={migrationLoading}
+              style={{
+                ...buttonSecondary,
+                opacity: migrationLoading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
+            >
+              {migrationLoading ? "Migrando..." : "Cargar about inicial"}
+            </button>
+          )}
       </div>
 
       <form onSubmit={handleSubmit} style={{
-        display: "flex",
+        width: "100%",
         flexDirection: "column",
         gap: "2rem",
-        maxWidth: "800px",
       }}>
         <div>
           <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>

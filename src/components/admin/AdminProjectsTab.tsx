@@ -70,6 +70,8 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
   const [form, setForm] = useState<Project>(blankProject());
   const draggingRef = useRef(false);
 
+  const hasProjectsData = projects.length > 0;
+
   // When the editor opens, reset the panel's scroll to the top so it doesn't
   // appear scrolled to the bottom (where the clicked item was in the list).
   useEffect(() => {
@@ -342,19 +344,21 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
         <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: COLORS.white }}>
           Proyectos
         </h2>
-        <button
-          type="button"
-          onClick={onMigrateProjects}
-          disabled={migrationLoading}
-          style={{
-            ...buttonSecondary,
-            opacity: migrationLoading ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
-        >
-          {migrationLoading ? "Migrando..." : "Cargar proyectos iniciales"}
-        </button>
+          {hasProjectsData ? null : (
+            <button
+              type="button"
+              onClick={onMigrateProjects}
+              disabled={migrationLoading}
+              style={{
+                ...buttonSecondary,
+                opacity: migrationLoading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => { if (!migrationLoading) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.text; }}
+            >
+              {migrationLoading ? "Migrando..." : "Cargar proyectos iniciales"}
+            </button>
+          )}
       </div>
 
       {projects.length === 0 && (

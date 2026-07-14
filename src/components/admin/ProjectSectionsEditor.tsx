@@ -31,6 +31,18 @@ const COLORS = {
   error: "#EF4444",
 };
 
+const SECTION_TYPE_OPTIONS: { value: SectionType; label: string; icon: string }[] = [
+  { value: "text", label: "Texto", icon: "¶" },
+  { value: "image", label: "Imagen", icon: "▣" },
+  { value: "video", label: "Video", icon: "▸" },
+];
+
+const SECTION_SIZE_OPTIONS: { value: SectionSize; label: string }[] = [
+  { value: "small", label: "Pequeño" },
+  { value: "medium", label: "Mediano" },
+  { value: "large", label: "Grande" },
+];
+
 interface ProjectSectionsEditorProps {
   sections: ProjectSection[];
   onChange: (sections: ProjectSection[]) => void;
