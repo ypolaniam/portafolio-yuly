@@ -27,6 +27,7 @@
   --transition-base: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition-slow: 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
   --container-max: 1400px;
+  --detail-max: 1200px;
   --header-height: 80px;
   --section-padding-y: 10rem;
   --section-padding-x: 2.5rem;
@@ -354,6 +355,19 @@ section:nth-of-type(even) {
   margin-top: 4rem;
 }
 
+/* Cap the inner content (not the full-bleed section backgrounds) so the home
+   doesn't stretch edge-to-edge on very large screens. The unused
+   --container-max variable now drives this. */
+.hero-inner,
+.work-header,
+.projects-rows,
+.about-inner,
+.timeline-section,
+.contact-inner {
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
 /* ===== RELATED PROJECTS CAROUSEL (ported from ProjectCarousel.astro) ===== */
 .carousel-wrapper {
   position: relative;
@@ -607,44 +621,67 @@ section:nth-of-type(even) {
   position: relative;
   z-index: 1;
   width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-areas:
+    "content"
+    "photo";
   gap: 3rem;
   align-items: center;
 }
 
 @media (min-width: 768px) {
   .hero-inner {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 5fr 4fr;
+    grid-template-areas: "content photo";
     gap: 2.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-inner {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "content photo";
     gap: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-inner {
+    grid-template-columns: 5fr 4fr;
+    grid-template-areas: "photo content";
+    gap: 4rem;
   }
 }
 
 .hero-visual {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* Decorative-only layer now. The photo lives in .hero-inner so text and
+     image share the same centered container and stay balanced at every width. */
+  width: min(var(--container-max), 100%);
+  margin-inline: auto;
   pointer-events: none;
   z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 var(--section-padding-x);
   transition: opacity var(--transition-base);
 }
 
 .hero-photo {
+  grid-area: photo;
+  justify-self: center;
+  align-self: start;
   position: relative;
   z-index: 2;
   width: 100%;
-  /* Cap to 40vw so the absolutely-positioned photo never gets wider than the
-     right half of the hero and overlaps the text column on tablet/desktop. */
-  max-width: min(420px, 40vw);
+  /* min() caps the photo so it never spills past its grid column on wide
+     screens, while still shrinking fluidly on smaller viewports. */
+  max-width: min(440px, 100%);
+  max-height: 78vh;
   aspect-ratio: 3/4;
   border-radius: var(--radius-xl);
   overflow: hidden;
@@ -652,11 +689,18 @@ section:nth-of-type(even) {
   will-change: transform;
 }
 
-/* Below the 2-column breakpoint the photo is hidden anyway, but keep it from
-   ever overlapping the text if it is shown. */
+/* Below the 2-column breakpoint the photo is hidden, but keep it from
+   ever overlapping the text if it is shown. Fixed px cap (no vw) so it can't
+   spill past the right margin on tablets either. */
 @media (max-width: 900px) {
   .hero-photo {
-    max-width: min(340px, 42vw);
+    max-width: min(360px, 100%);
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-photo {
+    display: none;
   }
 }
 
@@ -713,16 +757,20 @@ section:nth-of-type(even) {
 }
 
 .hero-content {
+  grid-area: content;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  /* Allow the text column to shrink instead of forcing the grid track wider
+     than its fr share, which would otherwise cause overflow on narrow screens. */
+  min-width: 0;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-size: clamp(2.25rem, 5.5vw, 4.5rem);
   font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
@@ -734,9 +782,9 @@ section:nth-of-type(even) {
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
   color: var(--color-text-light);
-  max-width: 60ch;
+  max-width: 52ch;
   line-height: 1.8;
   margin: 0;
 }
@@ -782,7 +830,7 @@ section:nth-of-type(even) {
 }
 
 .stat-number {
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.875rem, 3.5vw, 2.5rem);
   font-weight: 700;
   line-height: 1;
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
@@ -926,6 +974,7 @@ section:nth-of-type(even) {
 
 @media (max-width: 768px) {
   .hero-visual { opacity: 0; }
+  .hero-photo { display: none; }
   .scroll-indicator { display: none; }
   .hero-stats { gap: 1.5rem; }
   .stat-number { font-size: 2rem; }
@@ -1326,6 +1375,8 @@ section:nth-of-type(even) {
 /* ===== PROJECT DETAIL ===== */
 .project-detail {
   width: 100%;
+  max-width: var(--detail-max);
+  margin: 0 auto;
   padding: 6rem var(--section-padding-x) 4rem;
 }
 
@@ -1334,7 +1385,6 @@ section:nth-of-type(even) {
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 4rem;
-  max-width: 900px;
 }
 
 .back-link {
@@ -1414,9 +1464,12 @@ section:nth-of-type(even) {
 .project-lead,
 .project-meta,
 .project-metrics-section {
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  /* Aligned to the container's left edge (same as the cover image) instead of
+     being centered in a narrow 800px column, which left big, uneven side
+     margins under the full-width image. */
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .project-results-description {
@@ -1456,11 +1509,11 @@ section:nth-of-type(even) {
 }
 
 .project-lead {
-  font-size: 1.25rem;
-  line-height: 1.8;
+  font-size: 1.375rem;
+  line-height: 1.75;
   color: var(--color-text);
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -1533,6 +1586,46 @@ section:nth-of-type(even) {
   background: rgba(139, 92, 246, 0.12);
   padding: 0.15em 0.4em;
   border-radius: 0.375rem;
+}
+
+/* The metrics grid/cards had no styles (rendered as plain inline text).
+   Lay them out as a clear, space-filling responsive grid. */
+.metrics-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 92px;
+  padding: 1.5rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.metric-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.metric-value {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text);
 }
 
 .rich-text-editor-content p {
@@ -3167,8 +3260,7 @@ section:nth-of-type(even) {
 
 /* ===== PROJECT GALLERY (public detail) ===== */
 .project-gallery-section {
-  max-width: 900px;
-  margin-top: 3rem;
+  margin-top: 3.5rem;
 }
 
 .gallery-section-title {
@@ -3180,8 +3272,8 @@ section:nth-of-type(even) {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
 }
 
 .gallery-thumb {

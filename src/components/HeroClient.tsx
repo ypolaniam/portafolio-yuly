@@ -32,6 +32,8 @@ export default function HeroClient() {
   useEffect(() => {
     if (animatedRef.current || !sectionRef.current) return;
 
+    const cleanups: (() => void)[] = [];
+
     const bootAnimations = () => {
       if (animatedRef.current || !sectionRef.current) return;
       animatedRef.current = true;
@@ -81,15 +83,17 @@ export default function HeroClient() {
       });
 
       const visual = section.querySelector(".hero-visual");
+      const photo = section.querySelector(".hero-photo");
+      const stats = section.querySelector(".hero-stats");
       const content = section.querySelector(".hero-inner");
       const grid = section.querySelector(".grid-overlay");
       const indicator = section.querySelector(".scroll-indicator");
 
-      // On mobile the hero visual (photo + decorative blobs) is intentionally
-      // hidden via CSS. The parallax below writes inline styles, which would
-      // override that media query and make the photo/blobs show through behind
-      // the text. Skip it on small screens and clear any inline styles so CSS
-      // keeps control of the hidden state.
+      // On mobile the hero visual and photo are intentionally hidden via CSS.
+      // The parallax below writes inline styles, which would override that media
+      // query and make them show through behind the text. Skip it on small
+      // screens and clear any inline styles so CSS keeps control of the hidden
+      // state.
       const isDesktop = () => window.matchMedia("(min-width: 769px)").matches;
 
       if (visual) {
@@ -117,6 +121,120 @@ export default function HeroClient() {
           },
           { target: section, offset: ["start start", "end start"] }
         );
+      }
+
+      if (photo) {
+        // Calculate the photo's document-relative top by walking the
+        // offsetParent chain. This is immune to CSS transforms (parallax,
+        // sticky, etc.) so it stays stable as the page scrolls.
+        const getDocumentTop = (el: HTMLElement) => {
+          let top = 0;
+          let current: HTMLElement | null = el;
+          while (current) {
+            top += current.offsetTop;
+            current = current.offsetParent as HTMLElement | null;
+          }
+          return top;
+        };
+
+        let photoInitialTop = getDocumentTop(photo);
+        let statsBottomInSection = section.offsetHeight;
+        let currentTranslateY = 0;
+        const img = photo.querySelector("img");
+
+        const recalcInitial = () => {
+          photoInitialTop = getDocumentTop(photo);
+          if (stats) {
+            const statsRect = stats.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            statsBottomInSection = statsRect.bottom - sectionRect.top;
+          } else {
+            statsBottomInSection = section.offsetHeight;
+          }
+        };
+
+        const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
+
+        const computePhotoSticky = () => {
+          const scrollY = window.scrollY;
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight;
+          const photoHeight = photo.offsetHeight;
+          const stickyOffset = window.innerHeight * 0.15;
+
+          // The photo starts sticking when its natural top reaches stickyOffset
+          // from the viewport top.
+          const start = sectionTop + photoInitialTop - stickyOffset;
+          // Stop the photo when its bottom would pass the stats text bottom
+          // or the section bottom, whichever comes first.
+          const statsEnd = sectionTop + statsBottomInSection - stickyOffset - photoHeight - 16;
+          const sectionEnd = sectionTop + sectionHeight - stickyOffset - photoHeight;
+          const end = Math.min(statsEnd, sectionEnd);
+
+          let targetTranslateY = 0;
+          if (scrollY >= start && scrollY <= end) {
+            targetTranslateY = stickyOffset - (photoInitialTop - scrollY);
+          } else if (scrollY < start) {
+            targetTranslateY = 0;
+          } else {
+            // Past the limit: freeze the photo at the bottom boundary so it
+            // never overlaps the stats text.
+            targetTranslateY = stickyOffset - photoInitialTop + end;
+          }
+
+          // Smooth the movement with a lerp, but clamp so the photo never
+          // exceeds its allowed range during the ease. 0.25 gives a nice
+          // responsive-but-smooth follow effect.
+          const minTranslate = 0;
+          const maxTranslate = Math.max(0, stickyOffset - photoInitialTop + end);
+          currentTranslateY = lerp(currentTranslateY, targetTranslateY, 0.25);
+          currentTranslateY = Math.max(minTranslate, Math.min(currentTranslateY, maxTranslate));
+          photo.style.transform = `translateY(${currentTranslateY}px)`;
+        };
+
+        const onScroll = () => {
+          if (!isDesktop()) {
+            photo.style.transform = "";
+            currentTranslateY = 0;
+            return;
+          }
+          window.requestAnimationFrame(computePhotoSticky);
+        };
+
+        const onResize = () => {
+          if (!isDesktop()) {
+            photo.style.transform = "";
+            currentTranslateY = 0;
+            return;
+          }
+          recalcInitial();
+          computePhotoSticky();
+        };
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onResize);
+        
+        if (img && !img.complete) {
+          img.addEventListener("load", () => {
+            recalcInitial();
+            computePhotoSticky();
+          }, { once: true });
+        }
+        
+        requestAnimationFrame(() => {
+          recalcInitial();
+          computePhotoSticky();
+        });
+
+        cleanups.push(() => {
+          window.removeEventListener("scroll", onScroll);
+          window.removeEventListener("resize", onResize);
+          if (img) {
+            img.removeEventListener("load", recalcInitial);
+          }
+          photo.style.transform = "";
+          currentTranslateY = 0;
+        });
       }
 
       if (grid) {
@@ -207,14 +325,16 @@ export default function HeroClient() {
         bootAnimations();
       }
     }, 120);
+
+    return () => {
+      clearInterval(waitIntro);
+      cleanups.forEach((fn) => fn());
+    };
   }, []);
 
   return (
     <section ref={sectionRef} className="hero hero-loading" aria-label="Presentación">
       <div className="hero-visual">
-        <div className="hero-photo">
-          <img src={hero.photo} alt="Yuly Alejandra Polanía Molano" loading="eager" />
-        </div>
         <div className="blob blob-1" />
         <div className="blob blob-2" />
         <div className="blob blob-3" />
@@ -257,6 +377,10 @@ export default function HeroClient() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="hero-photo">
+          <img src={hero.photo} alt="Yuly Alejandra Polanía Molano" loading="eager" />
         </div>
       </div>
 
