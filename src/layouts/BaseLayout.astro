@@ -112,6 +112,10 @@ const {
             <span></span>
           </button>
           <nav id="primary-nav" class="nav" aria-label="Principal">
+            <a href="/#inicio" class="nav-link" data-nav="inicio">
+              Inicio
+              <span class="nav-underline"></span>
+            </a>
             <a href="/#trabajo" class="nav-link" data-nav="trabajo">
               Trabajo
               <span class="nav-underline"></span>
@@ -163,6 +167,12 @@ const {
     <script>
       import { animate, scroll } from "motion";
 
+      // The home view is identified by "no hash" or the explicit #inicio hash.
+      const HOME_HASH = "#inicio";
+      function isHomeHash(hash) {
+        return !hash || hash === "#" || hash === HOME_HASH;
+      }
+
       // Scroll progress bar
       const progressBar = document.querySelector('.scroll-progress-bar');
       if (progressBar) {
@@ -174,13 +184,14 @@ const {
         );
       }
 
-      // Nav link active state on scroll
+      // Nav link active state + URL hash sync on scroll (scroll-spy)
       const navLinks = document.querySelectorAll('.nav-link[data-nav]');
-      const sections = Array.from(navLinks).map(link => 
+      const sections = Array.from(navLinks).map(link =>
         document.getElementById(link.dataset.nav)
       ).filter(Boolean);
 
       if (sections.length > 0) {
+        let activeNavId = null;
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -188,9 +199,16 @@ const {
               navLinks.forEach(link => {
                 link.classList.toggle('active', link.dataset.nav === id);
               });
+              // Keep the URL hash in sync with the section in view. replaceState
+              // avoids a history entry AND an unwanted scroll-to-anchor.
+              if (id && id !== activeNavId) {
+                activeNavId = id;
+                const newHash = id === 'inicio' ? HOME_HASH : '#' + id;
+                history.replaceState(null, '', newHash);
+              }
             }
           });
-        }, { rootMargin: '-50% 0px -50% 0px', threshold: 0.1 });
+        }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
 
         sections.forEach(section => observer.observe(section));
       }
@@ -311,18 +329,73 @@ const {
         });
       }
 
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'auto';
-      }
-      if (!window.location.hash) {
-        window.scrollTo(0, 0);
-      }
-      document.addEventListener('astro:page-load', () => {
-        if (!window.location.hash) {
+      // Scroll to the section referenced by the URL hash on (re)load. Manual
+      // scroll restoration keeps the browser from fighting our scroll.
+      function scrollToHashTarget() {
+        const hash = window.location.hash;
+        if (isHomeHash(hash)) {
           window.scrollTo(0, 0);
+          return true;
         }
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: 'auto', block: 'start' });
+          return true;
+        }
+        return false;
+      }
+
+      function initHashScroll() {
+        if (isHomeHash(window.location.hash)) {
+          window.scrollTo(0, 0);
+          return;
+        }
+        if (!scrollToHashTarget()) {
+          // Target not in the DOM yet (e.g. client:only island) — retry briefly.
+          let tries = 0;
+          const t = setInterval(() => {
+            if (scrollToHashTarget() || ++tries > 40) clearInterval(t);
+          }, 50);
+        }
+      }
+
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      initHashScroll();
+
+      // Re-apply a deep-link scroll once fonts/images have settled, but only
+      // if the user hasn't scrolled away in the meantime.
+      window.addEventListener('load', () => {
+        if (!isHomeHash(window.location.hash) && window.scrollY <= 4) {
+          scrollToHashTarget();
+        }
+      });
+
+      // Back/forward to a hash URL (popstate) doesn't auto-scroll with manual
+      // restoration, so scroll to the target explicitly.
+      window.addEventListener('popstate', () => {
+        const hash = window.location.hash;
+        if (isHomeHash(hash)) {
+          window.scrollTo(0, 0);
+        } else {
+          const el = document.querySelector(hash);
+          if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+        }
+      });
+
+      document.addEventListener('astro:page-load', () => {
+        const hash = window.location.hash;
+        if (isHomeHash(hash)) {
+          window.scrollTo(0, 0);
+        } else if (window.scrollY <= 4) {
+          scrollToHashTarget();
+        }
+        // On a deep link the intro is skipped, so reveal the header right away.
+        // On the home view keep it hidden until the intro finishes (HeroClient).
         const header = document.querySelector('.site-header.header-intro-hidden');
-        if (header && window.location.hash) {
+        if (header && !isHomeHash(hash)) {
           header.classList.add('header-visible');
           header.classList.remove('header-intro-hidden');
         }

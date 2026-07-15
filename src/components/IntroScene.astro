@@ -28,11 +28,17 @@ interface Props {}
   const root = document.documentElement;
   const body = document.body;
 
-  if (!scene || window.location.hash) {
+  // The intro only plays on the home view. Treat "no hash" and the explicit
+  // home hash (#inicio) as the home view; any other hash (deep link) skips it.
+  const HOME_HASH = '#inicio';
+  const currentHash = window.location.hash;
+  const isHomeView = !currentHash || currentHash === HOME_HASH;
+
+  if (!scene || !isHomeView) {
     scene?.remove();
     root.style.setProperty('--intro-opacity', '0');
     body.style.overflow = '';
-    throw new Error('IntroScene skipped due to hash navigation');
+    throw new Error('IntroScene skipped: deep-link hash present');
   }
 
   body.style.overflow = 'hidden';

@@ -337,6 +337,11 @@ section:nth-of-type(even) {
   scroll-margin-top: var(--header-height);
 }
 
+/* Keep deep links / scroll-spy targets clear of the fixed header */
+.timeline-section {
+  scroll-margin-top: var(--header-height);
+}
+
 .site-footer {
   background: var(--color-bg-alt);
   padding: 4rem var(--section-padding-x);

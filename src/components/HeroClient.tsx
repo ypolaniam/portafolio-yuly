@@ -333,7 +333,7 @@ export default function HeroClient() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="hero hero-loading" aria-label="Presentación">
+    <section ref={sectionRef} id="inicio" className="hero hero-loading" aria-label="Presentación">
       <div className="hero-visual">
         <div className="blob blob-1" />
         <div className="blob blob-2" />
