@@ -43,19 +43,6 @@ export default function AdminBrandTab({ brand, onBrandChange, migrationLoading, 
     boxSizing: "border-box",
   };
 
-  const buttonPrimary: React.CSSProperties = {
-    padding: "0.875rem",
-    borderRadius: "0.75rem",
-    border: "none",
-    background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
-    color: COLORS.white,
-    fontWeight: 600,
-    fontSize: "0.9375rem",
-    cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
-    transition: "all 0.2s ease",
-  };
-
   const buttonSecondary: React.CSSProperties = {
     padding: "0.875rem",
     borderRadius: "0.75rem",
@@ -145,8 +132,8 @@ export default function AdminBrandTab({ brand, onBrandChange, migrationLoading, 
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-          <button type="submit" disabled={loading} style={{ ...buttonPrimary, opacity: loading ? 0.7 : 1 }}>
+        <div className="admin-editor-floating-actions">
+          <button type="submit" disabled={loading} className="admin-editor-save">
             {loading ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
