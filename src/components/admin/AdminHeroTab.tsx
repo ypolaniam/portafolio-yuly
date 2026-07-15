@@ -383,6 +383,16 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
                 style={{ ...inputStyle, flex: 1 }}
               />
               <input
+                value={stat.prefix || ""}
+                onChange={(e) => {
+                  const next = [...form.stats];
+                  next[idx] = { ...next[idx], prefix: e.target.value };
+                  update({ stats: next });
+                }}
+                placeholder="Prefijo (opcional)"
+                style={{ ...inputStyle, width: "120px", flexShrink: 0 }}
+              />
+              <input
                 type="number"
                 value={stat.value}
                 onChange={(e) => {
@@ -416,7 +426,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
           ))}
           <button
             type="button"
-            onClick={() => update({ stats: [...form.stats, { label: "", value: 0 }] })}
+            onClick={() => update({ stats: [...form.stats, { label: "", value: 0, prefix: "" }] })}
             style={{
               ...buttonSecondary,
               padding: "0.5rem 1rem",

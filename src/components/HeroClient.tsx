@@ -373,9 +373,12 @@ export default function HeroClient() {
           <div className="hero-stats reveal-item">
             {hero.stats.map((stat, idx) => (
               <div className="stat" key={idx}>
-                <span className="stat-number" data-count={stat.value}>
-                  0
-                </span>
+                <div className="stat-number-container">
+                  {stat.prefix && <span className="stat-prefix">{stat.prefix}</span>}
+                  <span className="stat-number" data-count={stat.value}>
+                    0
+                  </span>
+                </div>
                 <span className="stat-label">{stat.label}</span>
               </div>
             ))}

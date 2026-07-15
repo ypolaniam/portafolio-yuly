@@ -1,6 +1,7 @@
 export interface HeroStat {
   label: string;
   value: number;
+  prefix?: string;
 }
 
 export interface HeroCTA {
