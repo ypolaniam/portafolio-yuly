@@ -13,6 +13,7 @@ export interface AboutEducation {
 
 export interface About {
   title: string;
+  image: string;
   intro: string[];
   values: AboutValue[];
   skills: string[];

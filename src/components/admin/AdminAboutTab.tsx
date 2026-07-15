@@ -26,8 +26,10 @@ interface AdminAboutTabProps {
 
 export default function AdminAboutTab({ about, onAboutChange, migrationLoading, onMigrateAbout, onShowSnackbar }: AdminAboutTabProps) {
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState<About>({ ...about });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string>("");
 
+  const [form, setForm] = useState<About>({ ...about });
   useEffect(() => {
     setForm({ ...about });
   }, [about]);
@@ -36,11 +38,42 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
 
   const hasAboutData = Boolean(
     about.title.trim() ||
+    about.image.trim() ||
     about.intro.some(Boolean) ||
     about.values.length > 0 ||
     about.skills.length > 0 ||
     about.education.length > 0
   );
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const preset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !preset) {
+      onShowSnackbar?.("Falta configurar Cloudinary.", "error");
+      throw new Error("Cloudinary no configurado");
+    }
+
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", preset);
+    const res = await fetch(url, { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Error subiendo imagen");
+    const data = await res.json();
+    return data.secure_url as string;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file));
+      setFileName(file.name);
+    } else {
+      setPreviewUrl(null);
+      setFileName("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,9 +100,19 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         return;
       }
 
-      await setAbout(form);
-      onAboutChange(form);
+      let image = form.image;
+
+      const fileInput = document.getElementById("about-image") as HTMLInputElement | null;
+      if (fileInput?.files?.[0]) {
+        image = await uploadToCloudinary(fileInput.files[0]);
+      }
+
+      const payload = { ...form, image };
+      await setAbout(payload);
+      onAboutChange(payload);
       onShowSnackbar?.("Datos de Sobre mí guardados correctamente");
+      setPreviewUrl(null);
+      setFileName("");
     } catch (err) {
       console.error(err);
       onShowSnackbar?.("Error guardando datos de Sobre mí", "error");
@@ -146,6 +189,57 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
             required
             style={inputStyle}
           />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            Imagen de perfil
+          </label>
+          <input
+            id="about-image"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+          <label
+            htmlFor="about-image"
+            style={{
+              ...buttonSecondary,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+          </label>
+          <input
+            value={form.image}
+            onChange={(e) => { update({ image: e.target.value }); setPreviewUrl(null); setFileName(""); }}
+            placeholder="O pegá una URL directamente"
+            style={{ ...inputStyle, marginTop: "0.75rem" }}
+          />
+          {(previewUrl || form.image) && (
+            <div style={{ marginTop: "1rem" }}>
+              <img
+                src={previewUrl || form.image}
+                alt="Preview"
+                style={{
+                  width: "120px",
+                  height: "160px",
+                  objectFit: "cover",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div>

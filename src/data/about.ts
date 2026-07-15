@@ -2,6 +2,7 @@ import type { About } from "../types/about";
 
 export const initialAbout: About = {
   title: "Diseño con propósito",
+  image: "",
   intro: [
     "Diseñadora con una curiosidad inquieta y una visión transformadora del entorno. Mi trabajo combina aptitudes del diseño gráfico e industrial para crear experiencias visuales y narrativas que conectan con lo intuitivo.",
     "He desarrollado piezas de identidad visual, editoriales, de storytelling y proyectos interactivos, explorando y comunicando emociones a través del color, la forma y la textura que se expresa en contenido audiovisual.",

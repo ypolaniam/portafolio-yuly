@@ -50,7 +50,7 @@ export default function AboutClient() {
         <div className="about-body">
           <div className="about-hero">
             <div className="about-image">
-              <img src="https://placehold.co/600x800/8B5CF6/FFFFFF?text=Yuly" alt="Yuly Alejandra Polanía Molano" loading="lazy" />
+              <img src={about.image || "https://placehold.co/600x800/8B5CF6/FFFFFF?text=Yuly"} alt="Yuly Alejandra Polanía Molano" loading="lazy" />
             </div>
             <div className="about-intro">
               {about.intro.map((paragraph, idx) => (

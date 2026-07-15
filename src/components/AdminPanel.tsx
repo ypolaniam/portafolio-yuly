@@ -43,6 +43,7 @@ const DEFAULT_BRAND: Brand = {
 
 const DEFAULT_ABOUT: About = {
   title: "",
+  image: "",
   intro: [""],
   values: [],
   skills: [],
