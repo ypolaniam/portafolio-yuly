@@ -416,8 +416,13 @@ section:nth-of-type(even) {
 .carousel-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  transform: translateY(-50%) scale(1.05);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carousel-btn:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
 }
 
 .carousel-btn:active {
@@ -580,12 +585,19 @@ section:nth-of-type(even) {
 
 .btn-primary:hover {
   background: var(--color-primary-dark);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+/* Lift only on real pointers so touch taps don't leave the button stuck mid-air */
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .btn-primary:active {
   transform: translateY(0);
+  filter: brightness(0.97);
 }
 
 .btn-secondary {
@@ -598,6 +610,10 @@ section:nth-of-type(even) {
   background: var(--color-bg-alt);
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
 .hero-actions {
@@ -1101,12 +1117,14 @@ section:nth-of-type(even) {
   height: 100%;
 }
 
-.project-card:hover .project-card-image img {
-  transform: scale(1.06);
-}
+@media (hover: hover) and (pointer: fine) {
+  .project-card:hover .project-card-image img {
+    transform: scale(1.06);
+  }
 
-.project-card:hover .project-card-image video {
-  transform: scale(1.06);
+  .project-card:hover .project-card-image video {
+    transform: scale(1.06);
+  }
 }
 
 .project-card-tag {
@@ -1173,6 +1191,19 @@ section:nth-of-type(even) {
 
 .project-card:hover .project-title {
   color: var(--color-primary);
+}
+
+/* Touch devices have no :hover — keep the tag + CTA overlay visible so the
+   whole-card link still reads as interactive (and gets a tap target hint). */
+@media (hover: none) {
+  .project-card .project-card-tag,
+  .project-card .project-card-overlay {
+    opacity: 1;
+  }
+
+  .project-card .project-card-overlay span {
+    transform: translateY(0);
+  }
 }
 
 .projects-rows {
@@ -1327,8 +1358,13 @@ section:nth-of-type(even) {
 
 .contact-info-item:hover {
   border-color: var(--color-primary);
-  transform: translateX(8px);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contact-info-item:hover {
+    transform: translateX(8px);
+  }
 }
 
 .contact-info-label {
@@ -1369,7 +1405,16 @@ section:nth-of-type(even) {
 .contact-social a:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  transform: translateY(-2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contact-social a:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.contact-social a:active {
+  transform: scale(0.92);
 }
 
 /* ===== PROJECT DETAIL ===== */
@@ -1405,7 +1450,6 @@ section:nth-of-type(even) {
 }
 
 .back-link:hover {
-  transform: translateX(-4px);
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
 }
 
@@ -1414,8 +1458,18 @@ section:nth-of-type(even) {
   transition: transform var(--transition-base);
 }
 
-.back-link:hover svg {
-  transform: translateX(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .back-link:hover {
+    transform: translateX(-4px);
+  }
+
+  .back-link:hover svg {
+    transform: translateX(-3px);
+  }
+}
+
+.back-link:active {
+  transform: translateX(0);
 }
 
 .project-detail-header .project-category {
@@ -1618,7 +1672,12 @@ section:nth-of-type(even) {
 
 .metric-card:hover {
   border-color: var(--color-primary);
-  transform: translateY(-2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .metric-card:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .metric-value {
@@ -2019,8 +2078,13 @@ section:nth-of-type(even) {
 .back-to-top:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .back-to-top:hover {
+    transform: translateY(-2px);
+  }
 }
 
 @media (max-width: 540px) {
@@ -2355,8 +2419,13 @@ section:nth-of-type(even) {
 
 .education-card:hover {
   border-color: var(--color-primary);
-  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .education-card:hover {
+    transform: translateY(-4px);
+  }
 }
 
 .education-year {
@@ -2410,8 +2479,13 @@ section:nth-of-type(even) {
 
 .value-card:hover {
   border-color: var(--color-primary);
-  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .value-card:hover {
+    transform: translateY(-4px);
+  }
 }
 
 .value-number {
@@ -2599,8 +2673,13 @@ section:nth-of-type(even) {
 
 .timeline-card:hover {
   border-color: var(--color-primary);
-  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .timeline-card:hover {
+    transform: translateY(-4px);
+  }
 }
 
 .timeline-card-header {
@@ -2803,6 +2882,18 @@ section:nth-of-type(even) {
 .admin-editor-save:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+/* Lively hover for the primary save action (was missing) */
+.admin-editor-save:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(139, 92, 246, 0.45);
+  filter: brightness(1.08);
+}
+
+.admin-editor-save:not(:disabled):active {
+  transform: translateY(0);
+  filter: brightness(0.96);
 }
 
 /* ===== Floating save/cancel bar (bottom center, always visible) ===== */
@@ -3069,6 +3160,12 @@ section:nth-of-type(even) {
   transition: all 0.2s ease;
 }
 
+/* Subtle hover feedback for the selectable option (was missing) */
+.admin-radio:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #F8FAFC;
+}
+
 .admin-radio.active {
   border-color: #8B5CF6;
   color: #F8FAFC;
@@ -3294,12 +3391,21 @@ section:nth-of-type(even) {
 }
 
 .gallery-thumb:hover {
-  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
 }
 
-.gallery-thumb:hover img {
-  transform: scale(1.06);
+@media (hover: hover) and (pointer: fine) {
+  .gallery-thumb:hover {
+    transform: translateY(-4px);
+  }
+
+  .gallery-thumb:hover img {
+    transform: scale(1.06);
+  }
+}
+
+.gallery-thumb:active {
+  transform: scale(0.97);
 }
 
 /* ===== LIGHTBOX ===== */
@@ -3379,6 +3485,16 @@ section:nth-of-type(even) {
 
 .lightbox-nav:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lightbox-prev:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .lightbox-next:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
 }
 
 .lightbox-prev {

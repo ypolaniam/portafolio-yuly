@@ -255,8 +255,13 @@ const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
   
   .contact-info-item:hover {
     border-color: var(--color-primary);
-    transform: translateX(8px);
     box-shadow: var(--shadow-lg);
+  }
+  
+  @media (hover: hover) and (pointer: fine) {
+    .contact-info-item:hover {
+      transform: translateX(8px);
+    }
   }
   
   .contact-info-icon {
@@ -321,6 +326,11 @@ const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
   .contact-social a:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    transform: translateY(-2px);
+  }
+  
+  @media (hover: hover) and (pointer: fine) {
+    .contact-social a:hover {
+      transform: translateY(-2px);
+    }
   }
 </style>
