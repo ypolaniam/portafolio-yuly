@@ -219,7 +219,7 @@ export default function ProjectCarousel({ currentSlug }: ProjectCarouselProps) {
                     <span className="overlay-title">Ver proyecto →</span>
                     {project.metrics ? (
                       <span className="overlay-metric">
-                        {typeof project.metrics === "string" ? project.metrics : project.metrics[0]}
+                        {typeof project.metrics === "string" ? project.metrics : project.metrics.join(" | ")}
                       </span>
                     ) : (
                       ""
@@ -232,7 +232,7 @@ export default function ProjectCarousel({ currentSlug }: ProjectCarouselProps) {
                   {project.metrics ? (
                     <div className="project-metrics">
                       <span className="metric">
-                        {Array.isArray(project.metrics) ? project.metrics[0] : project.metrics}
+                        {Array.isArray(project.metrics) ? project.metrics.join(" | ") : project.metrics}
                       </span>
                     </div>
                   ) : (

@@ -101,7 +101,7 @@ export default function ProjectsGridClient() {
                       <ProjectCoverMedia project={first} variant="loop" />
                       <div className="project-card-overlay">
                         <span className="overlay-title">Ver proyecto →</span>
-                        {first.metrics && <span className="overlay-metric">{typeof first.metrics === 'string' ? first.metrics : first.metrics[0]}</span>}
+                        {first.metrics && <span className="overlay-metric">{typeof first.metrics === 'string' ? first.metrics : first.metrics.join(' | ')}</span>}
                       </div>
                       <span className="project-card-tag">{first.category}</span>
                     </div>
@@ -109,7 +109,7 @@ export default function ProjectsGridClient() {
                       <h3 className="project-title">{first.title}</h3>
                       {first.metrics && (
                         <div className="project-metrics">
-                          {Array.isArray(first.metrics) ? first.metrics.map((m) => <span key={m} className="metric">{m}</span>) : <span className="metric">{first.metrics}</span>}
+                          <span className="metric">{typeof first.metrics === 'string' ? first.metrics : first.metrics.join(' | ')}</span>
                         </div>
                       )}
                     </div>
@@ -123,7 +123,7 @@ export default function ProjectsGridClient() {
                       <ProjectCoverMedia project={second} variant="loop" />
                       <div className="project-card-overlay">
                         <span className="overlay-title">Ver proyecto →</span>
-                        {second.metrics && <span className="overlay-metric">{typeof second.metrics === 'string' ? second.metrics : second.metrics[0]}</span>}
+                        {second.metrics && <span className="overlay-metric">{typeof second.metrics === 'string' ? second.metrics : second.metrics.join(' | ')}</span>}
                       </div>
                       <span className="project-card-tag">{second.category}</span>
                     </div>
@@ -131,7 +131,7 @@ export default function ProjectsGridClient() {
                       <h3 className="project-title">{second.title}</h3>
                       {second.metrics && (
                         <div className="project-metrics">
-                          {Array.isArray(second.metrics) ? second.metrics.map((m) => <span key={m} className="metric">{m}</span>) : <span className="metric">{second.metrics}</span>}
+                          <span className="metric">{typeof second.metrics === 'string' ? second.metrics : second.metrics.join(' | ')}</span>
                         </div>
                       )}
                     </div>

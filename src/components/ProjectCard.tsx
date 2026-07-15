@@ -37,7 +37,7 @@ export default function ProjectCard({ project, mode = "display", onEdit, onDelet
           <span className="overlay-title">Ver proyecto →</span>
           {project.metrics ? (
             <span className="overlay-metric">
-              {typeof project.metrics === "string" ? project.metrics : project.metrics[0]}
+              {typeof project.metrics === "string" ? project.metrics : project.metrics.join(" | ")}
             </span>
           ) : null}
         </div>
@@ -47,11 +47,9 @@ export default function ProjectCard({ project, mode = "display", onEdit, onDelet
         <h3 className="project-title">{project.title}</h3>
         {project.metrics ? (
           <div className="project-metrics">
-            {Array.isArray(project.metrics) ? (
-              project.metrics.map((m, idx) => <span key={`${m}-${idx}`} className="metric">{m}</span>)
-            ) : (
-              <span className="metric">{project.metrics}</span>
-            )}
+            <span className="metric">
+              {typeof project.metrics === "string" ? project.metrics : project.metrics.join(" | ")}
+            </span>
           </div>
         ) : null}
       </div>
