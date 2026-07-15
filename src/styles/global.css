@@ -3358,6 +3358,32 @@ section:nth-of-type(even) {
   margin: 0;
 }
 
+/* ===== FORM LAYOUT HELPERS ===== */
+.admin-section-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin-bottom: 0.5rem;
+  display: block;
+  letter-spacing: -0.01em;
+}
+
+.admin-image-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.admin-image-row .admin-gallery-btn {
+  flex-shrink: 0;
+}
+
+.admin-image-row .admin-field {
+  flex: 1;
+  min-width: 200px;
+}
+
 /* ===== PROJECT GALLERY (public detail) ===== */
 .project-gallery-section {
   margin-top: 3.5rem;

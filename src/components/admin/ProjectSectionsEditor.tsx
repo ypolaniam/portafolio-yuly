@@ -25,6 +25,7 @@ const COLORS = {
   border: "#1E1D3A",
   text: "#F8FAFC",
   textMuted: "#94A3B8",
+  textLight: "#CBD5E1",
   primary: "#8B5CF6",
   primaryDark: "#7C3AED",
   white: "#FFFFFF",
@@ -130,6 +131,14 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
     transition: "all 0.2s ease",
   };
 
+  const labelField: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    color: COLORS.textLight,
+    marginBottom: "0.5rem",
+  };
+
   return (
     <div className="section-editor">
       {sections.length > 0 && (
@@ -228,20 +237,22 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                                 style={{ display: "none" }}
                                 id={`section-image-${section.id}`}
                               />
-                              <label htmlFor={`section-image-${section.id}`} className="admin-gallery-btn" style={{ alignSelf: "flex-start" }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                  <circle cx="8.5" cy="8.5" r="1.5" />
-                                  <polyline points="21 15 16 10 5 21" />
-                                </svg>
-                                {isUploading ? "Subiendo..." : fileName[section.id] ? `Cambiar imagen (${fileName[section.id]})` : "Seleccionar imagen"}
-                              </label>
-                              <input
-                                placeholder="O pegá una URL directamente"
-                                value={section.src || ""}
-                                onChange={(e) => updateSection(section.id, { src: e.target.value })}
-                                className="admin-field"
-                              />
+                              <div className="admin-image-row">
+                                <label htmlFor={`section-image-${section.id}`} className="admin-gallery-btn">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <polyline points="21 15 16 10 5 21" />
+                                  </svg>
+                                  {isUploading ? "Subiendo..." : fileName[section.id] ? `Cambiar imagen (${fileName[section.id]})` : "Seleccionar imagen"}
+                                </label>
+                                <input
+                                  placeholder="O pegá una URL directamente"
+                                  value={section.src || ""}
+                                  onChange={(e) => updateSection(section.id, { src: e.target.value })}
+                                  className="admin-field"
+                                />
+                              </div>
                               <input
                                 placeholder="Texto alternativo (alt)"
                                 value={section.alt || ""}
@@ -281,12 +292,15 @@ export default function ProjectSectionsEditor({ sections, onChange, uploadToClou
                             </div>
                           )}
 
-                          <input
-                            placeholder="Caption opcional (imagen/video)"
-                            value={section.caption || ""}
-                            onChange={(e) => updateSection(section.id, { caption: e.target.value })}
-                            className="admin-field"
-                          />
+                          <div>
+                            <label style={labelField}>Caption opcional (imagen/video)</label>
+                            <input
+                              placeholder="Caption opcional (imagen/video)"
+                              value={section.caption || ""}
+                              onChange={(e) => updateSection(section.id, { caption: e.target.value })}
+                              className="admin-field"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

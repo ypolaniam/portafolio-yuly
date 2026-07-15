@@ -73,6 +73,12 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         photo = await uploadToCloudinary(fileInput.files[0]);
       }
 
+      if (!photo.trim()) {
+        onShowSnackbar?.("La foto principal es requerida", "error");
+        setLoading(false);
+        return;
+      }
+
       const payload = { ...form, photo };
       await setHero(payload);
       onHeroChange(payload);
@@ -118,6 +124,23 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     transition: "all 0.2s ease",
     width: "100%",
     boxSizing: "border-box",
+  };
+
+  const labelSection: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    color: COLORS.white,
+    marginBottom: "0.5rem",
+    letterSpacing: "-0.01em",
+  };
+
+  const labelField: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    color: COLORS.textLight,
+    marginBottom: "0.5rem",
   };
 
   const buttonSecondary: React.CSSProperties = {
@@ -166,9 +189,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         gap: "1.5rem",
       }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Overline
-          </label>
+          <label style={labelField}>Overline</label>
           <input
             value={form.overline}
             onChange={(e) => update({ overline: e.target.value })}
@@ -178,9 +199,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Título (una línea por entrada)
-          </label>
+          <label style={labelField}>Título (una línea por entrada)</label>
           <textarea
             value={titleLines.join("\n")}
             onChange={(e) => update({ title: e.target.value.split("\n") })}
@@ -190,9 +209,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Subtítulo
-          </label>
+          <label style={labelField}>Subtítulo</label>
           <RichTextEditor
             compact
             value={form.subtitle}
@@ -202,21 +219,17 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div>
-            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-              CTA Primaria - Label
-            </label>
+            <label style={labelField}>CTA Primaria - Label</label>
             <input
               value={form.ctaPrimary.label}
               onChange={(e) => update({ ctaPrimary: { ...form.ctaPrimary, label: e.target.value } })}
               required
               style={inputStyle}
             />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-              CTA Primaria - URL
-            </label>
-            <input
+            </div>
+            <div>
+              <label style={labelField}>CTA Primaria - URL</label>
+              <input
               value={form.ctaPrimary.href}
               onChange={(e) => update({ ctaPrimary: { ...form.ctaPrimary, href: e.target.value } })}
               required
@@ -227,7 +240,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div>
-            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            <label style={labelField}>
               CTA Secundaria - Label
             </label>
             <input
@@ -238,7 +251,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
             />
           </div>
           <div>
-            <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+            <label style={labelField}>
               CTA Secundaria - URL
             </label>
             <input
@@ -251,40 +264,33 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Foto principal
-          </label>
-          <input
-            id="hero-photo"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
-          <label
-            htmlFor="hero-photo"
-            style={{
-              ...buttonSecondary,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              cursor: "pointer",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
-          </label>
-          <input
-            value={form.photo}
-            onChange={(e) => { update({ photo: e.target.value }); setPreviewUrl(null); setFileName(""); }}
-            placeholder="O pegá una URL directamente"
-            required
-            style={{ ...inputStyle, marginTop: "0.75rem" }}
-          />
+          <label style={labelSection}>Foto principal</label>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+            <label
+              htmlFor="hero-photo"
+              style={{
+                ...buttonSecondary,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+            </label>
+            <input
+              value={form.photo}
+              onChange={(e) => { update({ photo: e.target.value }); setPreviewUrl(null); setFileName(""); }}
+              placeholder="O pegá una URL directamente"
+              style={{ ...inputStyle, flex: 1, minWidth: "200px" }}
+            />
+          </div>
           {(previewUrl || form.photo) && (
             <div style={{ marginTop: "1rem" }}>
               <img
@@ -303,9 +309,7 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Stats (label y valor)
-          </label>
+          <label style={labelSection}>Stats (label y valor)</label>
           {form.stats.map((stat, idx) => (
             <div key={idx} style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem", alignItems: "center" }}>
               <input

@@ -107,6 +107,12 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         image = await uploadToCloudinary(fileInput.files[0]);
       }
 
+      if (!image.trim()) {
+        onShowSnackbar?.("La imagen de perfil es requerida", "error");
+        setLoading(false);
+        return;
+      }
+
       const payload = { ...form, image };
       await setAbout(payload);
       onAboutChange(payload);
@@ -132,6 +138,23 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
     transition: "all 0.2s ease",
     width: "100%",
     boxSizing: "border-box",
+  };
+
+  const labelSection: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    color: COLORS.white,
+    marginBottom: "0.5rem",
+    letterSpacing: "-0.01em",
+  };
+
+  const labelField: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    color: COLORS.textLight,
+    marginBottom: "0.5rem",
   };
 
   const buttonSecondary: React.CSSProperties = {
@@ -180,7 +203,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         gap: "2rem",
       }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
+          <label style={labelField}>
             Título general
           </label>
           <input
@@ -192,9 +215,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Imagen de perfil
-          </label>
+          <label style={labelSection}>Imagen de perfil</label>
           <input
             id="about-image"
             type="file"
@@ -219,12 +240,14 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
             </svg>
             {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
           </label>
-          <input
-            value={form.image}
-            onChange={(e) => { update({ image: e.target.value }); setPreviewUrl(null); setFileName(""); }}
-            placeholder="O pegá una URL directamente"
-            style={{ ...inputStyle, marginTop: "0.75rem" }}
-          />
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end", marginTop: "0.75rem" }}>
+            <input
+              value={form.image}
+              onChange={(e) => { update({ image: e.target.value }); setPreviewUrl(null); setFileName(""); }}
+              placeholder="O pegá una URL directamente"
+              style={{ ...inputStyle, flex: 1, minWidth: "200px" }}
+            />
+          </div>
           {(previewUrl || form.image) && (
             <div style={{ marginTop: "1rem" }}>
               <img
@@ -243,9 +266,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Introducción (párrafos)
-          </label>
+          <label style={labelSection}>Introducción (párrafos)</label>
           {form.intro.map((paragraph, idx) => (
             <div key={idx} style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem" }}>
               <RichTextEditor
@@ -291,9 +312,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Valores (número, título, descripción)
-          </label>
+          <label style={labelSection}>Valores (número, título, descripción)</label>
           {form.values.map((value, idx) => (
             <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.75rem", padding: "1rem", background: "rgba(17, 16, 29, 0.4)", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ display: "flex", gap: "1rem" }}>
@@ -364,9 +383,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Skills
-          </label>
+          <label style={labelSection}>Skills</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
             {form.skills.map((skill, idx) => (
               <span key={idx} style={{
@@ -403,16 +420,16 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
             ))}
           </div>
           <div style={{ display: "flex", gap: "1rem" }}>
-            <input
-              value={form.skills.length > 0 ? "" : ""}
-              onChange={(e) => {
-                if (e.target.value && !form.skills.includes(e.target.value)) {
-                  update({ skills: [...form.skills, e.target.value] });
-                }
-              }}
-              placeholder="Nueva skill"
-              style={{ ...inputStyle, flex: 1 }}
-            />
+             <input
+               value=""
+               onChange={(e) => {
+                 if (e.target.value && !form.skills.includes(e.target.value)) {
+                   update({ skills: [...form.skills, e.target.value] });
+                 }
+               }}
+               placeholder="Nueva skill"
+               style={{ ...inputStyle, flex: 1 }}
+             />
             <button
               type="button"
               onClick={() => {
@@ -434,9 +451,7 @@ export default function AdminAboutTab({ about, onAboutChange, migrationLoading, 
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: COLORS.textLight, marginBottom: "0.5rem" }}>
-            Educación
-          </label>
+          <label style={labelSection}>Educación</label>
           {form.education.map((edu, idx) => (
             <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.75rem", padding: "1rem", background: "rgba(17, 16, 29, 0.4)", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem" }}>

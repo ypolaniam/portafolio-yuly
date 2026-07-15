@@ -161,6 +161,23 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
     boxSizing: "border-box",
   };
 
+  const labelSection: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    color: COLORS.white,
+    marginBottom: "0.5rem",
+    letterSpacing: "-0.01em",
+  };
+
+  const labelField: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    color: COLORS.textLight,
+    marginBottom: "0.5rem",
+  };
+
   const buttonPrimary: React.CSSProperties = {
     padding: "0.875rem",
     borderRadius: "0.75rem",
@@ -355,51 +372,66 @@ export default function AdminExperienceTab({ timeline, onTimelineChange, migrati
               {editing ? "Modificá los datos de la experiencia" : "Completá los datos para crear una nueva experiencia"}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <input
-                placeholder="Título *"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-                style={inputStyle}
-              />
-              <input
-                placeholder="Institución *"
-                value={form.institution}
-                onChange={(e) => setForm({ ...form, institution: e.target.value })}
-                required
-                style={inputStyle}
-              />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div>
+                <label style={labelField}>Título *</label>
                 <input
-                  placeholder="Ubicación"
-                  value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  style={inputStyle}
-                />
-                <input
-                  placeholder="Periodo"
-                  value={form.period}
-                  onChange={(e) => setForm({ ...form, period: e.target.value })}
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  required
                   style={inputStyle}
                 />
               </div>
-              <RichTextEditor
-                compact
-                value={form.description}
-                onChange={(html) => setForm({ ...form, description: html })}
-              />
-              <input
-                placeholder="Tags (separados por coma)"
-                value={form.tags?.join(", ") || ""}
-                onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })}
-                style={inputStyle}
-              />
-              <input
-                placeholder="URL (opcional)"
-                value={form.href}
-                onChange={(e) => setForm({ ...form, href: e.target.value })}
-                style={inputStyle}
-              />
+              <div>
+                <label style={labelField}>Institución *</label>
+                <input
+                  value={form.institution}
+                  onChange={(e) => setForm({ ...form, institution: e.target.value })}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={labelField}>Ubicación</label>
+                  <input
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelField}>Periodo</label>
+                  <input
+                    value={form.period}
+                    onChange={(e) => setForm({ ...form, period: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={labelField}>Descripción</label>
+                <RichTextEditor
+                  compact
+                  value={form.description}
+                  onChange={(html) => setForm({ ...form, description: html })}
+                />
+              </div>
+              <div>
+                <label style={labelField}>Tags (separados por coma)</label>
+                <input
+                  value={form.tags?.join(", ") || ""}
+                  onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })}
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelField}>URL (opcional)</label>
+                <input
+                  value={form.href}
+                  onChange={(e) => setForm({ ...form, href: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
               <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: COLORS.textLight, cursor: "pointer" }}>
                 <input
                   type="checkbox"

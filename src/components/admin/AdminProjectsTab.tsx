@@ -530,7 +530,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 </datalist>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Portada del proyecto <HelpTip text="Elegí la imagen principal o un video de YouTube como portada. La imagen también se usa como póster del video." /></label>
+                  <label className="admin-section-label">Portada del proyecto <HelpTip text="Elegí la imagen principal o un video de YouTube como portada. La imagen también se usa como póster del video." /></label>
                   <div className="admin-radio-row">
                     <label className={`admin-radio ${coverType === "image" ? "active" : ""}`}>
                       <input
@@ -553,35 +553,37 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   </div>
 
                   {coverType === "image" && (
-                    <>
-                      <input
-                        id="project-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        style={{ display: "none" }}
-                      />
-                      <label htmlFor="project-image" className="admin-gallery-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <polyline points="21 15 16 10 5 21" />
-                        </svg>
-                        {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
-                      </label>
-                      <input
-                        placeholder="O pegá una URL directamente"
-                        value={form.image}
-                        onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); setCoverPreview(""); }}
-                        className="admin-field"
-                      />
+                    <div>
+                      <div className="admin-image-row">
+                        <input
+                          id="project-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          style={{ display: "none" }}
+                        />
+                        <label htmlFor="project-image" className="admin-gallery-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                          {fileName ? `Cambiar imagen (${fileName})` : "Seleccionar imagen"}
+                        </label>
+                        <input
+                          placeholder="O pegá una URL directamente"
+                          value={form.image}
+                          onChange={(e) => { setForm({ ...form, image: e.target.value }); setFileName(""); setCoverPreview(""); }}
+                          className="admin-field"
+                        />
+                      </div>
                       {(coverPreviewUrl || form.image) && (
                         <div className="admin-cover-preview">
                           <img src={coverPreviewUrl || form.image} alt="Vista previa de la imagen principal" />
                           <span className="admin-cover-preview-label">Vista previa</span>
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
 
                   {coverType === "video" && (
@@ -616,7 +618,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 </div>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>
+                  <label className="admin-section-label" htmlFor="project-description">Descripción * <HelpTip text="Resumen principal del proyecto que aparece al abrirlo en el sitio público. Podés usar negrita, subtítulos, listas y enlaces." /></label>
                   <RichTextEditor
                     value={form.description}
                     onChange={(html) => setForm({ ...form, description: html })}
@@ -645,7 +647,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   </div>
                 </div>
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Descripción de Resultados (opcional) <HelpTip text="Texto que aparece bajo el título 'Resultados', antes de las tarjetas de métricas. Podés usar negrita, listas y enlaces." /></label>
+                  <label className="admin-section-label">Descripción de Resultados (opcional) <HelpTip text="Texto que aparece bajo el título 'Resultados', antes de las tarjetas de métricas. Podés usar negrita, listas y enlaces." /></label>
                   <RichTextEditor
                     value={form.resultsDescription ?? ""}
                     onChange={(html) => setForm({ ...form, resultsDescription: html })}
@@ -662,7 +664,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                   />
                 </div>
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Secciones del proyecto <HelpTip text="Bloques modulares (texto, imagen o video) que aparecen después de la descripción. Cada bloque tiene un tamaño (pequeño/mediano/grande) y se acomodan solos en una grilla. Podés reordenarlos arrastrando." /></label>
+                  <label className="admin-section-label">Secciones del proyecto <HelpTip text="Bloques modulares (texto, imagen o video) que aparecen después de la descripción. Cada bloque tiene un tamaño (pequeño/mediano/grande) y se acomodan solos en una grilla. Podés reordenarlos arrastrando." /></label>
                   <ProjectSectionsEditor
                     sections={form.sections ?? []}
                     onChange={(next) => setForm({ ...form, sections: next })}
@@ -672,7 +674,7 @@ export default function AdminProjectsTab({ projects, onProjectsChange, migration
                 </div>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Galería de imágenes <HelpTip text="Imágenes adicionales que se muestran en el detalle público con un visor ampliable (lightbox)." /></label>
+                  <label className="admin-section-label">Galería de imágenes <HelpTip text="Imágenes adicionales que se muestran en el detalle público con un visor ampliable (lightbox)." /></label>
                   <div className="admin-gallery-head">
                     <span className="admin-gallery-count">{(form.gallery ?? []).length} imágenes</span>
                   </div>
