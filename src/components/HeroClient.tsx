@@ -348,12 +348,15 @@ export default function HeroClient() {
           <p className="hero-overline reveal-item">{hero.overline}</p>
 
           <h1 className="hero-title reveal-item">
-            {hero.title.map((line, idx) => (
-              <span key={idx} className="gradient-text">
-                {line}
-                {idx < hero.title.length - 1 && <br />}
-              </span>
-            ))}
+            {hero.title.map((line, idx) => {
+              const fontSize = hero.titleFontSizes?.[idx];
+              return (
+                <span key={idx} className="gradient-text" style={fontSize ? { fontSize: `${fontSize}rem` } : undefined}>
+                  {line}
+                  {idx < hero.title.length - 1 && <br />}
+                </span>
+              );
+            })}
           </h1>
 
           <div className="hero-subtitle reveal-item" dangerouslySetInnerHTML={{ __html: sanitizeHtml(hero.subtitle) }} />

@@ -30,6 +30,7 @@ import type { Brand } from "../types/brand";
 const DEFAULT_HERO: Hero = {
   overline: "",
   title: [""],
+  titleFontSizes: [],
   subtitle: "",
   ctaPrimary: { label: "", href: "" },
   ctaSecondary: { label: "", href: "" },

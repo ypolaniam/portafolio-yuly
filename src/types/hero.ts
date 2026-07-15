@@ -11,6 +11,7 @@ export interface HeroCTA {
 export interface Hero {
   overline: string;
   title: string[];
+  titleFontSizes?: (number | undefined)[];
   subtitle: string;
   ctaPrimary: HeroCTA;
   ctaSecondary: HeroCTA;

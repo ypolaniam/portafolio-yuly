@@ -104,7 +104,11 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
     }
   };
 
-  const titleLines = form.title.join("\n").split("\n");
+  const ensureSizes = (sizes: (number | undefined)[] | undefined, length: number): (number | undefined)[] => {
+    const next = [...(sizes || [])];
+    while (next.length < length) next.push(undefined);
+    return next;
+  };
 
   const hasHeroData = Boolean(
     hero.subtitle.trim() ||
@@ -199,13 +203,68 @@ export default function AdminHeroTab({ hero, onHeroChange, migrationLoading, onM
         </div>
 
         <div>
-          <label style={labelField}>Título (una línea por entrada)</label>
-          <textarea
-            value={titleLines.join("\n")}
-            onChange={(e) => update({ title: e.target.value.split("\n") })}
-            required
-            style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }}
-          />
+          <label style={labelField}>Título</label>
+          {form.title.map((line, idx) => {
+            const sizes = ensureSizes(form.titleFontSizes, form.title.length);
+            return (
+              <div key={idx} style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem", alignItems: "center" }}>
+                <input
+                  value={line}
+                  onChange={(e) => {
+                    const next = [...form.title];
+                    next[idx] = e.target.value;
+                    update({ title: next });
+                  }}
+                  placeholder={`Línea ${idx + 1}`}
+                  required={idx === 0}
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <input
+                  type="number"
+                  value={sizes[idx] ?? ""}
+                  onChange={(e) => {
+                    const next = [...(form.titleFontSizes || [])];
+                    next[idx] = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                    update({ titleFontSizes: next });
+                  }}
+                  placeholder="rem"
+                  min={0.5}
+                  max={8}
+                  step={0.1}
+                  style={{ ...inputStyle, width: "90px", flexShrink: 0 }}
+                />
+                {form.title.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextTitle = form.title.filter((_, i) => i !== idx);
+                      const nextSizes = (form.titleFontSizes || []).filter((_, i) => i !== idx);
+                      update({ title: nextTitle, titleFontSizes: nextSizes });
+                    }}
+                    style={{
+                      background: "rgba(239, 68, 68, 0.15)",
+                      border: "1px solid rgba(239, 68, 68, 0.3)",
+                      borderRadius: "0.5rem",
+                      color: "#EF4444",
+                      padding: "0.5rem 0.75rem",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => update({ title: [...form.title, ""], titleFontSizes: [...(form.titleFontSizes || []), undefined] })}
+            style={{ ...buttonSecondary, padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+          >
+            + Agregar línea
+          </button>
         </div>
 
         <div>
