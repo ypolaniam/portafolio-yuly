@@ -368,7 +368,8 @@ section:nth-of-type(even) {
 .projects-rows,
 .about-inner,
 .timeline-section,
-.contact-inner {
+.contact-inner,
+.admin-inner {
   max-width: var(--container-max);
   margin-inline: auto;
 }
