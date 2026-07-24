@@ -3,13 +3,15 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { Hero } from "../types/hero";
 import { initialHero } from "../data/hero";
-import { animate, scroll, inView } from "motion";
+import { animate, scroll } from "motion";
 import { sanitizeHtml } from "../lib/html";
 
 export default function HeroClient() {
   const [hero, setHero] = useState<Hero>(initialHero);
   const sectionRef = useRef<HTMLElement>(null);
   const animatedRef = useRef(false);
+  const heroLoadedRef = useRef(false);
+  const statsObserverRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     if (!db) {
@@ -22,12 +24,84 @@ export default function HeroClient() {
       console.log("[HeroClient] snapshot:", data?.hero ? "has hero" : "no hero", snap.exists ? "doc exists" : "doc missing");
       if (data?.hero) {
         setHero(data.hero);
+        heroLoadedRef.current = true;
       }
     }, (err) => {
       console.error("[HeroClient] onSnapshot error:", err);
     });
     return () => unsub();
   }, []);
+
+  // Stats counter animation: triggers when Firestore data is available,
+  // independently of the boot animation timing. Uses getBoundingClientRect
+  // + IntersectionObserver so it works reliably on mobile and all breakpoints.
+  useEffect(() => {
+    if (!heroLoadedRef.current || !sectionRef.current) return;
+
+    const section = sectionRef.current;
+
+    if (statsObserverRef.current) {
+      statsObserverRef.current.disconnect();
+      statsObserverRef.current = null;
+    }
+
+    const statNumbers = section.querySelectorAll(".stat-number[data-count]");
+    if (statNumbers.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            const target = parseInt(el.dataset.count || "0");
+            animate(0, target, {
+              duration: 1.5,
+              ease: "easeOut",
+              onUpdate: (v) => {
+                el.textContent = Math.round(v).toLocaleString();
+              },
+            });
+            observer.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px 150px 0px" }
+    );
+
+    statNumbers.forEach((el, index) => {
+      const statEl = el as HTMLElement;
+      const target = parseInt(statEl.dataset.count || "0");
+
+      // Reset to 0 so the animation always starts from zero.
+      statEl.textContent = "0";
+
+      const rect = statEl.getBoundingClientRect();
+      const isVisible =
+        rect.top < window.innerHeight + 120 && rect.bottom > -120;
+
+      if (isVisible) {
+        animate(0, target, {
+          duration: 1.5,
+          ease: "easeOut",
+          delay: index * 0.12,
+          onUpdate: (v) => {
+            statEl.textContent = Math.round(v).toLocaleString();
+          },
+        });
+      } else {
+        observer.observe(statEl);
+      }
+    });
+
+    statsObserverRef.current = observer;
+
+    return () => {
+      if (statsObserverRef.current) {
+        statsObserverRef.current.disconnect();
+        statsObserverRef.current = null;
+      }
+    };
+  }, [hero]);
 
   useEffect(() => {
     if (animatedRef.current || !sectionRef.current) return;
@@ -44,24 +118,6 @@ export default function HeroClient() {
       const revealItems = section.querySelectorAll(".reveal-item");
       revealItems.forEach((el, i) => {
         animate(el, { opacity: [0, 1], y: [30, 0] }, { duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.12 + i * 0.07 });
-      });
-
-      const statNumbers = section.querySelectorAll(".stat-number[data-count]");
-      statNumbers.forEach((el) => {
-        const target = parseInt(el.dataset.count || "0");
-        inView(
-          el,
-          () => {
-            animate(0, target, {
-              duration: 1.5,
-              ease: "easeOut",
-              onUpdate: (v) => {
-                el.textContent = Math.round(v).toLocaleString();
-              },
-            });
-          },
-          { once: true, margin: "-100px" }
-        );
       });
 
       const blobs = section.querySelectorAll(".blob");
@@ -329,6 +385,10 @@ export default function HeroClient() {
     return () => {
       clearInterval(waitIntro);
       cleanups.forEach((fn) => fn());
+      if (statsObserverRef.current) {
+        statsObserverRef.current.disconnect();
+        statsObserverRef.current = null;
+      }
     };
   }, []);
 
